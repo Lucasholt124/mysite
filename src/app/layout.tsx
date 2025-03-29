@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   title: "IMPULSIONE_WEB",
   description: "Site profissional",
   icons: {
-    icon: "/Green-and-White-Simple-Technology-Logo.ico",
+    icon: "/favicon.ico",
   },
 };
 
@@ -29,9 +29,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <header>
-      <link rel="icon" href="/Green-and-White-Simple-Technology-Logo.ico" />
-      </header>
+      <head>
+      <link rel="icon" href="/favicon.ico" />
+      </head>
+
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

@@ -42,7 +42,7 @@ export function Footer() {
             <h3 className='text-2xl font-semibold mb-2'>Contatos</h3>
             <p>Email: Lucatavares321@hotmail.com</p>
             <p>Telefone: (79) 99938-3543</p>
-            <p>Rua Antônio Mendonça, Centro, Cidade-Ribeiropolis, Estado-SE</p>
+            <p>Rua Antônio Mendonça, Centro, Ribeiropolis-SE</p>
           </div>
 
           <div>
@@ -51,7 +51,7 @@ export function Footer() {
               <a data-aos="flip-up" href="https://www.linkedin.com/in/lucas-arag%C3%A3o-front-end/" target='_blank'>
                 <LinkedinLogo className='w-8 h-8' />
               </a>
-              <a data-aos="flip-up" href="#" target='_blank'>
+              <a data-aos="flip-up" href="https://www.instagram.com/impulsioneweb_?igsh=ajN3dHE3dnRqcDcz" target='_blank'>
                 <InstagramLogo className='w-8 h-8' />
               </a>
               <a data-aos="flip-up" href="https://github.com/Lucasholt124" target='_blank'>
