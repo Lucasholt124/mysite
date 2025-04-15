@@ -15,7 +15,7 @@ export default function Header() {
       <div className="container mx-auto flex h-16 items-center justify-between px-6 md:px-8">
         <Link href="/" className="flex items-center space-x-2">
           <span className="text-2xl font-bold text-purple-600">
-            Inpulsione<span className="text-gray-900">web</span>
+            Impulsione<span className="text-gray-900">web</span>
           </span>
         </Link>
 

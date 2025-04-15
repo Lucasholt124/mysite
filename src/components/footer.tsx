@@ -15,19 +15,30 @@ export default function Footer() {
           {/* Marca e redes sociais */}
           <div>
             <h3 className="mb-4 text-2xl font-bold text-white">
-              Inpulsione
-              <span className="text-purple-500">web</span>
+              Impulsione<span className="text-purple-500">web</span>
             </h3>
-            <p className="mb-6 text-sm text-gray-400">
+            <p className="mb-6 text-sm text-gray-400 max-w-xs">
               Soluções digitais completas para impulsionar seu negócio no ambiente online.
             </p>
             <div className="flex gap-4">
-              {[ Instagram, Linkedin].map((Icon, idx) => (
-                <Link key={idx} href="https://www.instagram.com/impulsioneweb_?igsh=ajN3dHE3dnRqcDcz" className="group">
-                  <Icon className="h-5 w-5 text-gray-400 transition-colors group-hover:text-purple-400" />
-                  <span className="sr-only">Rede social</span>
-                </Link>
-              ))}
+              <a
+                href="https://www.instagram.com/impulsioneweb_?igsh=ajN3dHE3dnRqcDcz"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group"
+              >
+                <Instagram className="h-5 w-5 text-gray-400 transition-colors duration-200 group-hover:text-purple-400" />
+                <span className="sr-only">Instagram</span>
+              </a>
+              <a
+                href="https://www.linkedin.com/in/lucas-arag%C3%A3o-fullstack/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group"
+              >
+                <Linkedin className="h-5 w-5 text-gray-400 transition-colors duration-200 group-hover:text-purple-400" />
+                <span className="sr-only">LinkedIn</span>
+              </a>
             </div>
           </div>
 
@@ -43,7 +54,10 @@ export default function Footer() {
                 "Consultoria Digital",
               ].map((service, idx) => (
                 <li key={idx}>
-                  <Link href="#" className="text-gray-400 hover:text-purple-400 transition-colors">
+                  <Link
+                    href="#"
+                    className="text-gray-400 hover:text-purple-400 transition-colors duration-200"
+                  >
                     {service}
                   </Link>
                 </li>
@@ -55,10 +69,26 @@ export default function Footer() {
           <div>
             <h4 className="mb-4 text-lg font-semibold text-white">Links Rápidos</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/" className="text-gray-400 hover:text-purple-400">Home</Link></li>
-              <li><Link href="/#servicos" className="text-gray-400 hover:text-purple-400">Serviços</Link></li>
-              <li><Link href="/contrato" className="text-gray-400 hover:text-purple-400">Iniciar Projeto</Link></li>
-              <li><Link href="/#contato" className="text-gray-400 hover:text-purple-400">Contato</Link></li>
+              <li>
+                <Link href="/" className="text-gray-400 hover:text-purple-400 transition-colors duration-200">
+                  Home
+                </Link>
+              </li>
+              <li>
+                <Link href="/#servicos" className="text-gray-400 hover:text-purple-400 transition-colors duration-200">
+                  Serviços
+                </Link>
+              </li>
+              <li>
+                <Link href="/contrato" className="text-gray-400 hover:text-purple-400 transition-colors duration-200">
+                  Iniciar Projeto
+                </Link>
+              </li>
+              <li>
+                <Link href="/#contato" className="text-gray-400 hover:text-purple-400 transition-colors duration-200">
+                  Contato
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -87,7 +117,8 @@ export default function Footer() {
 
         <div className="mt-16 border-t border-gray-800 pt-6 text-center">
           <p className="text-sm text-gray-500">
-            &copy; {new Date().getFullYear()} <span className="text-white font-medium">Inpulsioneweb</span>. Todos os direitos reservados.
+            &copy; {new Date().getFullYear()}{" "}
+            <span className="text-white font-medium">Impulsioneweb</span>. Todos os direitos reservados.
           </p>
         </div>
       </div>

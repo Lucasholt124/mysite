@@ -10,7 +10,7 @@ import WhatsAppButton from "@/components/whatsapp-button"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Inpulsioneweb - Criação de Sites, Sistemas e Marketing Digital",
+  title: "Impulsioneweb - Criação de Sites, Sistemas e Marketing Digital",
   description:
     "Soluções digitais completas para impulsionar seu negócio. Criação de sites, sistemas e estratégias de marketing digital personalizadas.",
 }

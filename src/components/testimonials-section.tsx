@@ -10,14 +10,14 @@ const testimonials = [
     name: "Carlos Silva",
     role: "CEO, TechSolutions",
     content:
-      "A Inpulsioneweb transformou completamente nossa presença online. O site ficou incrível e os resultados de marketing superaram todas as expectativas.",
+      "A Impulsioneweb transformou completamente nossa presença online. O site ficou incrível e os resultados de marketing superaram todas as expectativas.",
     avatar: "/placeholder.svg?height=100&width=100",
   },
   {
     name: "Ana Oliveira",
     role: "Diretora, Moda Express",
     content:
-      "Nosso e-commerce desenvolvido pela equipe da Inpulsioneweb aumentou nossas vendas em 200% no primeiro trimestre. Profissionais excepcionais!",
+      "Nosso e-commerce desenvolvido pela equipe da Impulsioneweb aumentou nossas vendas em 200% no primeiro trimestre. Profissionais excepcionais!",
     avatar: "/Ana.svg?height=100&width=100",
   },
   {

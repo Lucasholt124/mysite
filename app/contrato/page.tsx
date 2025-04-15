@@ -273,10 +273,10 @@ export default function ContratoPage() {
                     <SelectValue placeholder="Selecione uma faixa" />
                   </SelectTrigger>
                   <SelectContent className="bg-white border border-gray-300 rounded-lg shadow-md">
-                    <SelectItem value="1000-3000" className="text-gray-700 hover:bg-purple-50">R$ 1.000 - R$ 3.000</SelectItem>
-                    <SelectItem value="3000-5000" className="text-gray-700 hover:bg-purple-50">R$ 3.000 - R$ 5.000</SelectItem>
-                    <SelectItem value="5000-10000" className="text-gray-700 hover:bg-purple-50">R$ 5.000 - R$ 10.000</SelectItem>
-                    <SelectItem value="10000+" className="text-gray-700 hover:bg-purple-50">Acima de R$ 10.000</SelectItem>
+                    <SelectItem value="1000-3000" className="text-gray-700 hover:bg-purple-50">R$ 1.000 - R$ 1.500</SelectItem>
+                    <SelectItem value="3000-5000" className="text-gray-700 hover:bg-purple-50">R$ 2.000 - R$ 2.500</SelectItem>
+                    <SelectItem value="5000-10000" className="text-gray-700 hover:bg-purple-50">R$ 3.000 - R$ 3.500</SelectItem>
+                    <SelectItem value="10000+" className="text-gray-700 hover:bg-purple-50">Acima de R$ 5.000</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -350,7 +350,7 @@ export default function ContratoPage() {
                   <p className="mb-4">
                     <strong>CONTRATO DE PRESTAÇÃO DE SERVIÇOS</strong>
                     <br />
-                    Entre Inpulsioneweb e {formData.name || "[Nome do Cliente]"}
+                    Entre Impulsioneweb e {formData.name || "[Nome do Cliente]"}
                   </p>
 
                   <p className="mb-4">

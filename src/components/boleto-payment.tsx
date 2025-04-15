@@ -89,7 +89,7 @@ export default function BoletoPayment() {
               <div className="flex flex-col sm:flex-row justify-between gap-4">
                 <div>
                   <p className="text-xs text-gray-500">Beneficiário</p>
-                  <p className="font-medium text-gray-800">Inpulsioneweb Tecnologia LTDA</p>
+                  <p className="font-medium text-gray-800">Impulsioneweb Tecnologia LTDA</p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">CNPJ</p>

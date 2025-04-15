@@ -27,7 +27,7 @@ export default function PagamentoSucessoPage() {
       >
         <h1 className="mb-4 text-4xl font-bold text-gray-900">Pagamento Confirmado!</h1>
         <p className="mb-6 text-lg text-gray-600">
-          Obrigado por confiar na <span className="font-semibold text-purple-700">Inpulsioneweb</span>.
+          Obrigado por confiar na <span className="font-semibold text-purple-700">Impulsioneweb</span>.
           Seu projeto foi iniciado com sucesso.
         </p>
 

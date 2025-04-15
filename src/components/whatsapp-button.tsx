@@ -9,7 +9,7 @@ export default function WhatsAppButton() {
 
   // Substitua este número pelo seu número de WhatsApp no formato internacional
   const phoneNumber = "5579999383543  "
-  const message = "Olá! Gostaria de saber mais sobre os serviços da Inpulsioneweb."
+  const message = "Olá! Gostaria de saber mais sobre os serviços da Impulsioneweb."
 
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`
 
