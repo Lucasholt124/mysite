@@ -24,7 +24,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 export default function ContratoPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const typeParam = searchParams.get("type")
 
   const [step, setStep] = useState(1)
   const [contractSigned, setContractSigned] = useState(false)
@@ -39,8 +38,8 @@ export default function ContratoPage() {
     timeline: "",
     description: "",
     termsAccepted: false,
-    serviceType: typeParam === "maintenance" ? "maintenance" : "project", // "project" ou "maintenance"
-    maintenancePlan: "", // "basic", "intermediate", "advanced", "premium"
+    serviceType: "project", // Valor inicial
+    maintenancePlan: "",
     paymentId: "",
     maintenanceDetails: {
       siteLink: "",
@@ -48,10 +47,13 @@ export default function ContratoPage() {
     },
   })
 
+
   const [paymentMethod, setPaymentMethod] = useState<string>("")
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState("")
   const [paymentProcessing, setPaymentProcessing] = useState(false)
+
+  const typeParam = searchParams.get("type")
 
   // Atualizar o tipo de serviço quando o parâmetro da URL mudar
   useEffect(() => {
@@ -209,15 +211,15 @@ export default function ContratoPage() {
       await new Promise((resolve) => setTimeout(resolve, 2000))
 
       // Em um ambiente real, aqui você faria a chamada para a API de pagamento
-      // const response = await fetch("/api/payment", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ paymentMethod, paymentId: formData.paymentId }),
-      // });
+       const response = await fetch("/api/payment", {
+         method: "POST",
+         headers: { "Content-Type": "application/json" },
+         body: JSON.stringify({ paymentMethod, paymentId: formData.paymentId }),
+       });
 
-      // if (!response.ok) {
-      //   throw new Error("Falha ao processar o pagamento");
-      // }
+      if (!response.ok) {
+         throw new Error("Falha ao processar o pagamento");
+       }
 
       // Redirecionar para a página de sucesso
       router.push("/pagamento-sucesso")
@@ -284,6 +286,7 @@ export default function ContratoPage() {
   ]
 
   return (
+
     <div className="container mx-auto min-h-screen px-4 py-12">
       <Link href="/" className="mb-8 inline-flex items-center text-purple-600 hover:text-purple-700">
         <ArrowLeft className="mr-2 h-4 w-4" /> Voltar para a página inicial
