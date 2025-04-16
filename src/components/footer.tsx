@@ -1,124 +1,121 @@
+"use client"
+
 import Link from "next/link"
-import {
-  Instagram,
-  Linkedin,
-  Mail,
-  MapPin,
-  Phone,
-} from "lucide-react"
+import { Instagram, Linkedin, Mail, MapPin, Phone } from "lucide-react"
 
 export default function Footer() {
   return (
-    <footer className="w-full bg-gray-950 text-white">
-      <div className="container mx-auto px-6 py-16">
-        <div className="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Marca e redes sociais */}
+    <footer className="w-full bg-gray-900 text-white">
+      <div className="container mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-4">
           <div>
             <h3 className="mb-4 text-2xl font-bold text-white">
-              Impulsione<span className="text-purple-500">web</span>
+              Impulsione<span className="text-purple-400">web</span>
             </h3>
-            <p className="mb-6 text-sm text-gray-400 max-w-xs">
+            <p className="mb-6 text-gray-400 text-sm leading-relaxed">
               Soluções digitais completas para impulsionar seu negócio no ambiente online.
             </p>
-            <div className="flex gap-4">
+            <div className="flex space-x-4">
               <a
                 href="https://www.instagram.com/impulsioneweb_?igsh=ajN3dHE3dnRqcDcz"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group"
+                aria-label="Instagram"
+                className="text-gray-400 hover:text-purple-400 transition-colors"
               >
-                <Instagram className="h-5 w-5 text-gray-400 transition-colors duration-200 group-hover:text-purple-400" />
-                <span className="sr-only">Instagram</span>
+                <Instagram className="h-5 w-5" />
               </a>
               <a
                 href="https://www.linkedin.com/in/lucas-arag%C3%A3o-fullstack/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group"
+                aria-label="LinkedIn"
+                className="text-gray-400 hover:text-purple-400 transition-colors"
               >
-                <Linkedin className="h-5 w-5 text-gray-400 transition-colors duration-200 group-hover:text-purple-400" />
-                <span className="sr-only">LinkedIn</span>
+                <Linkedin className="h-5 w-5" />
               </a>
             </div>
           </div>
 
-          {/* Serviços */}
           <div>
-            <h4 className="mb-4 text-lg font-semibold text-white">Serviços</h4>
+            <h3 className="mb-4 text-lg font-semibold text-white">Serviços</h3>
             <ul className="space-y-2 text-sm">
-              {[
-                "Criação de Sites",
-                "Desenvolvimento de Sistemas",
-                "Marketing Digital",
-                "UI/UX Design",
-                "Consultoria Digital",
-              ].map((service, idx) => (
-                <li key={idx}>
-                  <Link
-                    href="#"
-                    className="text-gray-400 hover:text-purple-400 transition-colors duration-200"
-                  >
-                    {service}
-                  </Link>
-                </li>
-              ))}
+              <li>
+                <Link href="#" className="text-gray-400 hover:text-purple-400 transition-colors">
+                  Criação de Sites
+                </Link>
+              </li>
+              <li>
+                <Link href="#" className="text-gray-400 hover:text-purple-400 transition-colors">
+                  Desenvolvimento de Sistemas
+                </Link>
+              </li>
+              <li>
+                <Link href="#" className="text-gray-400 hover:text-purple-400 transition-colors">
+                  Marketing Digital
+                </Link>
+              </li>
+              <li>
+                <Link href="#" className="text-gray-400 hover:text-purple-400 transition-colors">
+                  UI/UX Design
+                </Link>
+              </li>
+              <li>
+                <Link href="#" className="text-gray-400 hover:text-purple-400 transition-colors">
+                  Consultoria Digital
+                </Link>
+              </li>
             </ul>
           </div>
 
-          {/* Links rápidos */}
           <div>
-            <h4 className="mb-4 text-lg font-semibold text-white">Links Rápidos</h4>
+            <h3 className="mb-4 text-lg font-semibold text-white">Links Rápidos</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/" className="text-gray-400 hover:text-purple-400 transition-colors duration-200">
+                <Link href="/" className="text-gray-400 hover:text-purple-400 transition-colors">
                   Home
                 </Link>
               </li>
               <li>
-                <Link href="/#servicos" className="text-gray-400 hover:text-purple-400 transition-colors duration-200">
+                <Link href="/#servicos" className="text-gray-400 hover:text-purple-400 transition-colors">
                   Serviços
                 </Link>
               </li>
               <li>
-                <Link href="/contrato" className="text-gray-400 hover:text-purple-400 transition-colors duration-200">
+                <Link href="/contrato" className="text-gray-400 hover:text-purple-400 transition-colors">
                   Iniciar Projeto
                 </Link>
               </li>
               <li>
-                <Link href="/#contato" className="text-gray-400 hover:text-purple-400 transition-colors duration-200">
+                <Link href="/#contato" className="text-gray-400 hover:text-purple-400 transition-colors">
                   Contato
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Contato */}
           <div>
-            <h4 className="mb-4 text-lg font-semibold text-white">Contato</h4>
-            <ul className="space-y-4 text-sm text-gray-400">
+            <h3 className="mb-4 text-lg font-semibold text-white">Contato</h3>
+            <ul className="space-y-3 text-sm text-gray-400">
               <li className="flex items-start">
-                <MapPin className="mr-3 mt-0.5 h-5 w-5 text-purple-500" />
-                <span>
-                  Remoto<br />
-                  Ribeirópolis-SE
-                </span>
+                <MapPin className="mr-2 h-5 w-5 text-purple-400" />
+                Ribeirópolis-SE
               </li>
               <li className="flex items-center">
-                <Phone className="mr-3 h-5 w-5 text-purple-500" />
-                <span>(79) 99938-3543</span>
+                <Phone className="mr-2 h-5 w-5 text-purple-400" />
+                (79) 99938-3543
               </li>
               <li className="flex items-center">
-                <Mail className="mr-3 h-5 w-5 text-purple-500" />
-                <span>lucasholt2021@gmail.com</span>
+                <Mail className="mr-2 h-5 w-5 text-purple-400" />
+                lucasholt2021@gmail.com
               </li>
             </ul>
           </div>
         </div>
 
-        <div className="mt-16 border-t border-gray-800 pt-6 text-center">
+        <div className="mt-12 border-t border-gray-800 pt-8 text-center">
           <p className="text-sm text-gray-500">
-            &copy; {new Date().getFullYear()}{" "}
-            <span className="text-white font-medium">Impulsioneweb</span>. Todos os direitos reservados.
+            &copy; {new Date().getFullYear()} Impulsioneweb. Todos os direitos reservados.
           </p>
         </div>
       </div>

@@ -17,28 +17,23 @@ export default function AnimatedCounter({ value, duration = 2, suffix = "" }: An
   useEffect(() => {
     if (!isInView) return
 
-    const start = performance.now()
+    let start = 0
     const end = Math.min(value, 999)
-    const totalDuration = duration * 1000
+    const incrementTime = (duration * 1000) / end
 
-    const animate = (now: number) => {
-      const progress = Math.min((now - start) / totalDuration, 1)
-      const current = Math.floor(progress * end)
-      setCount(current)
+    const timer = setInterval(() => {
+      start += 1
+      setCount(start)
 
-      if (progress < 1) {
-        requestAnimationFrame(animate)
-      } else {
-        setCount(end)
-      }
-    }
+      if (start >= end) clearInterval(timer)
+    }, incrementTime)
 
-    requestAnimationFrame(animate)
+    return () => clearInterval(timer)
   }, [isInView, value, duration])
 
   return (
     <div ref={ref} className="text-4xl font-bold md:text-5xl">
-      {count.toLocaleString("pt-BR")}
+      {count}
       {suffix}
     </div>
   )

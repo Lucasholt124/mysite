@@ -29,28 +29,28 @@ export default function HeroSection() {
   return (
     <section
       ref={heroRef}
-      className="relative flex min-h-[90vh] w-full flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-purple-950 via-indigo-900 to-purple-800 px-4 py-20"
+      className="relative flex min-h-[90vh] w-full flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-purple-900 via-indigo-800 to-purple-800 px-4 py-20"
       style={{
         backgroundPosition: "calc(50% + var(--mouse-x, 0px)) calc(50% + var(--mouse-y, 0px))",
         transition: "background-position 0.1s ease-out",
       }}
     >
-      <div className="absolute inset-0 bg-[url('/noise.png')] bg-cover opacity-5 mix-blend-soft-light pointer-events-none"></div>
+      <div className="absolute inset-0 bg-[url('/placeholder.svg?height=1080&width=1920')] bg-cover bg-center opacity-10 mix-blend-overlay"></div>
 
       <motion.div
-        initial={{ opacity: 0, y: 30 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1 }}
+        transition={{ duration: 0.8 }}
         className="container relative z-10 mx-auto text-center"
       >
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.2 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
           className="mb-6 text-4xl font-extrabold tracking-tight text-white sm:text-5xl md:text-6xl"
         >
           <span className="block">Impulsione seu negócio</span>
-          <span className="block bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">
+          <span className="block bg-gradient-to-r from-purple-400 to-pink-300 bg-clip-text text-transparent">
             com soluções digitais
           </span>
         </motion.h1>
@@ -58,8 +58,8 @@ export default function HeroSection() {
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.4 }}
-          className="mx-auto mb-10 max-w-2xl text-base text-purple-100 sm:text-lg md:text-xl"
+          transition={{ duration: 0.8, delay: 0.4 }}
+          className="mx-auto mb-10 max-w-2xl text-lg text-purple-100 md:text-xl"
         >
           Criamos sites, sistemas e estratégias de marketing digital que transformam sua presença online e impulsionam
           seus resultados.
@@ -68,26 +68,26 @@ export default function HeroSection() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.6 }}
+          transition={{ duration: 0.8, delay: 0.6 }}
           className="flex flex-col items-center justify-center space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0"
         >
           <Link
             href="/contrato"
-            className="inline-flex items-center rounded-xl bg-white px-6 py-3 text-lg font-semibold text-purple-800 transition-all duration-300 hover:bg-purple-100 focus:outline-none focus:ring-4 focus:ring-purple-400"
+            className="inline-flex items-center rounded-lg bg-white px-6 py-3 text-lg font-medium text-purple-800 transition-all hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-purple-300"
           >
-            Começar Projeto <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+            Começar Projeto <ArrowRight className="ml-2 h-5 w-5" />
           </Link>
 
           <Link
             href="#servicos"
-            className="inline-flex items-center rounded-xl border border-white/60 bg-white/10 px-6 py-3 text-lg font-semibold text-white transition-all duration-300 hover:bg-white/20 focus:outline-none focus:ring-4 focus:ring-purple-300"
+            className="inline-flex items-center rounded-lg border-2 border-white bg-transparent px-6 py-3 text-lg font-medium text-white transition-all hover:bg-white/10 focus:outline-none focus:ring-4 focus:ring-purple-300"
           >
             Nossos Serviços
           </Link>
         </motion.div>
       </motion.div>
 
-      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent"></div>
     </section>
   )
 }

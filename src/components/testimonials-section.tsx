@@ -2,8 +2,7 @@
 
 import { useRef } from "react"
 import Image from "next/image"
-import { useInView, motion } from 'framer-motion';
-
+import { motion, useInView } from "framer-motion"
 
 const testimonials = [
   {
@@ -35,11 +34,11 @@ export default function TestimonialsSection() {
 
   return (
     <section className="w-full bg-gray-50 py-20">
-      <div className="container mx-auto px-6 md:px-12">
+      <div className="container mx-auto px-4">
         <div className="mb-12 text-center">
-          <h2 className="mb-4 text-3xl font-extrabold text-gray-900 md:text-4xl">O Que Nossos Clientes Dizem</h2>
-          <p className="mx-auto max-w-3xl text-lg text-gray-600">
-            Histórias inspiradoras de quem confiou em nossos serviços
+          <h2 className="mb-4 text-3xl font-bold text-gray-900 md:text-4xl">O Que Nossos Clientes Dizem</h2>
+          <p className="mx-auto max-w-2xl text-lg text-gray-600">
+            Histórias de sucesso de quem confiou em nossos serviços
           </p>
         </div>
 
@@ -47,33 +46,33 @@ export default function TestimonialsSection() {
           ref={ref}
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : { opacity: 0 }}
-          transition={{ duration: 0.6, staggerChildren: 0.2 }}
-          className="grid grid-cols-1 gap-10 md:grid-cols-3"
+          transition={{ duration: 0.5, staggerChildren: 0.1 }}
+          className="grid grid-cols-1 gap-8 md:grid-cols-3"
         >
           {testimonials.map((testimonial, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}
               animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-              className="rounded-3xl bg-white p-8 shadow-xl hover:shadow-2xl transition-shadow duration-300"
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              className="rounded-xl bg-white p-6 shadow-sm"
             >
-              <div className="mb-6 flex items-center">
-                <div className="mr-6 h-16 w-16 overflow-hidden rounded-full border-2 border-purple-600">
+              <div className="mb-4 flex items-center">
+                <div className="mr-4 h-12 w-12 overflow-hidden rounded-full">
                   <Image
                     src={testimonial.avatar || "/placeholder.svg"}
                     alt={testimonial.name}
-                    width={64}
-                    height={64}
+                    width={48}
+                    height={48}
                     className="h-full w-full object-cover"
                   />
                 </div>
                 <div>
-                  <h4 className="text-xl font-semibold text-gray-900">{testimonial.name}</h4>
-                  <p className="text-sm text-gray-500">{testimonial.role}</p>
+                  <h4 className="text-lg font-semibold text-gray-900">{testimonial.name}</h4>
+                  <p className="text-sm text-gray-600">{testimonial.role}</p>
                 </div>
               </div>
-              <p className="text-lg text-gray-700">{testimonial.content}</p>
+              <p className="text-gray-700">{testimonial.content}</p>
             </motion.div>
           ))}
         </motion.div>

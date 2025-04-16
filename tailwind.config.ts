@@ -1,24 +1,24 @@
 import type { Config } from "tailwindcss"
-import animatePlugin from "tailwindcss-animate"
 
-const config: Config = {
+const config = {
+  darkMode: ["class"],
   content: [
     "./pages/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
     "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",
-    "./**/*.{js,ts,jsx,tsx,mdx}",
+    "*.{js,ts,jsx,tsx,mdx}",
   ],
+  prefix: "",
   theme: {
     container: {
-      center: true, // Centraliza o conteúdo
-      padding: "2rem", // Define o padding padrão
+      center: true,
+      padding: "2rem",
       screens: {
-        "2xl": "1400px", // Tamanho personalizado para telas maiores
+        "2xl": "1400px",
       },
     },
     extend: {
-      // Cores definidas via variáveis CSS
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -66,13 +66,11 @@ const config: Config = {
           900: "#4c1d95",
         },
       },
-      // Definindo os border-radius personalizados
       borderRadius: {
-        lg: "var(--radius)", // Tamanho grande de border-radius
-        md: "calc(var(--radius) - 2px)", // Border-radius médio
-        sm: "calc(var(--radius) - 4px)", // Border-radius pequeno
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
       },
-      // Animações personalizadas para o acordeão
       keyframes: {
         "accordion-down": {
           from: { height: "0" },
@@ -89,9 +87,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [
-    animatePlugin, // Plugin para animações
-  ],
-}
+  plugins: [require("tailwindcss-animate")],
+} satisfies Config
 
 export default config

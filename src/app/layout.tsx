@@ -4,7 +4,7 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
-
+// Theme provider removed
 import WhatsAppButton from "@/components/whatsapp-button"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -23,12 +23,12 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <body className={inter.className}>
-
+        <>
           <Header />
           {children}
           <Footer />
           <WhatsAppButton />
-
+        </>
       </body>
     </html>
   )
