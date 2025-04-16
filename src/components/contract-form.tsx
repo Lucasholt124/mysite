@@ -696,11 +696,11 @@ export default function ContractForm() {
                   </p>
 
                   <p>
-                    <strong>1. OBJETO DO CONTRATO</strong>
+                    <strong>1. OBJETIVO DO CONTRATO</strong>
                     <br />
                     {formData.serviceType === "project" ? (
                       <>
-                        O presente contrato tem como objeto a prestação de serviços de{" "}
+                        O presente contrato tem como objetivo a prestação de serviços de{" "}
                         {formData.projectType || "desenvolvimento web"} pela CONTRATADA à CONTRATANTE, conforme
                         especificações detalhadas no Anexo I.
                       </>
