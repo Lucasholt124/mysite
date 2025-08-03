@@ -17,6 +17,7 @@ export async function POST(request: Request) {
     }
 
     const transporter = nodemailer.createTransport({
+
       host: process.env.EMAIL_HOST,
       port: parseInt(process.env.EMAIL_PORT || '587'),
       secure: process.env.EMAIL_SECURE === 'true',
@@ -47,6 +48,7 @@ export async function POST(request: Request) {
     }
 
     await transporter.sendMail(mailOptions)
+    console.log('Transporter:', transporter)
 
     // Simulando o envio de email para demonstração
     console.log("Enviando email com os dados:", body)

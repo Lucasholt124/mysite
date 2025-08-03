@@ -1,93 +1,140 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { MouseEvent } from "react"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
-import { motion } from "framer-motion"
+import { motion, useMotionValue, useSpring, useMotionValueEvent, MotionValue } from "framer-motion"
+
+// --- CORRIGIDO: Componente de Padrão de Grid Dinâmico ---
+function GridPattern({ mouseX, mouseY }: { mouseX: MotionValue<number>, mouseY: MotionValue<number> }) {
+  // 1. O maskImage agora é atualizado dinamicamente
+  const maskImage = useMotionValue<string>(
+    "radial-gradient(250px at 50% 50%, white, transparent)"
+  );
+
+  // 2. CORREÇÃO: Usamos useMotionValueEvent para conectar o mouse ao efeito
+  //    Isso é performático e a forma correta de reagir a mudanças no MotionValue.
+  useMotionValueEvent(mouseX, "change", (latestX) => {
+
+    maskImage.set(`radial-gradient(350px at ${latestX * 100}% ${mouseY.get() * 100}%, white, transparent 80%)`);
+  });
+
+  // 3. CORREÇÃO: `let` trocado por `const`
+  const style = {
+    maskImage,
+    WebkitMaskImage: maskImage,
+  };
+
+  return (
+    <div className="pointer-events-none absolute inset-0 z-0">
+      <motion.div
+        className="absolute inset-0 z-10 bg-gradient-to-br from-purple-500/20 via-indigo-500/20 to-purple-500/20 opacity-100"
+        style={style}
+      />
+      <div className="absolute inset-0 z-0 mix-blend-soft-light">
+        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+              <path d="M 32 0 L 0 0 0 32" fill="none" stroke="rgba(120, 120, 120, 0.15)" strokeWidth="1"/>
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#grid)" />
+        </svg>
+      </div>
+    </div>
+  );
+}
 
 export default function HeroSection() {
-  const heroRef = useRef<HTMLDivElement>(null)
+  // 4. CORREÇÃO: Estado 'isHovering' removido, pois era inútil.
+  const mouseX = useSpring(0.5, { stiffness: 400, damping: 90 });
+  const mouseY = useSpring(0.5, { stiffness: 400, damping: 90 });
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!heroRef.current) return
+  const handleMouseMove = (e: MouseEvent<HTMLElement>) => {
+    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+    mouseX.set((e.clientX - left) / width);
+    mouseY.set((e.clientY - top) / height);
+  };
 
-      const { clientX, clientY } = e
-      const { left, top, width, height } = heroRef.current.getBoundingClientRect()
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1, delayChildren: 0.2 },
+    },
+  };
 
-      const x = (clientX - left) / width - 0.5
-      const y = (clientY - top) / height - 0.5
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } },
+  };
 
-      heroRef.current.style.setProperty("--mouse-x", `${x * 20}px`)
-      heroRef.current.style.setProperty("--mouse-y", `${y * 20}px`)
-    }
-
-    document.addEventListener("mousemove", handleMouseMove)
-    return () => document.removeEventListener("mousemove", handleMouseMove)
-  }, [])
+  const titleWords = "Transformando ideias em realidade digital".split(" ");
+  const subtitle = "Criamos a ponte entre sua visão e o sucesso online com soluções de tecnologia e design sob medida.";
 
   return (
     <section
-      ref={heroRef}
-      className="relative flex min-h-[90vh] w-full flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-purple-900 via-indigo-800 to-purple-800 px-4 py-20"
-      style={{
-        backgroundPosition: "calc(50% + var(--mouse-x, 0px)) calc(50% + var(--mouse-y, 0px))",
-        transition: "background-position 0.1s ease-out",
-      }}
+      onMouseMove={handleMouseMove}
+      className="relative flex min-h-[90vh] w-full flex-col items-center justify-center overflow-hidden bg-gray-900 px-4 py-20"
     >
-      <div className="absolute inset-0 bg-[url('/placeholder.svg?height=1080&width=1920')] bg-cover bg-center opacity-10 mix-blend-overlay"></div>
+      <GridPattern mouseX={mouseX} mouseY={mouseY} />
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
         className="container relative z-10 mx-auto text-center"
       >
         <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="mb-6 text-4xl font-extrabold tracking-tight text-white sm:text-5xl md:text-6xl"
+          variants={containerVariants}
+          className="mb-6 text-4xl font-extrabold tracking-tight text-white sm:text-5xl md:text-6xl drop-shadow-lg"
         >
-          <span className="block">Impulsione seu negócio</span>
-          <span className="block bg-gradient-to-r from-purple-400 to-pink-300 bg-clip-text text-transparent">
-            com soluções digitais
-          </span>
+          {titleWords.map((word, index) => (
+            <motion.span key={index} variants={itemVariants} className="inline-block mr-3">
+              {index === 2 || index === 3 ? (
+                <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                  {word}
+                </span>
+              ) : (
+                word
+              )}
+            </motion.span>
+          ))}
         </motion.h1>
 
         <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="mx-auto mb-10 max-w-2xl text-lg text-purple-100 md:text-xl"
+          variants={itemVariants}
+          className="mx-auto mb-10 max-w-2xl text-lg text-purple-200/90 md:text-xl"
         >
-          Criamos sites, sistemas e estratégias de marketing digital que transformam sua presença online e impulsionam
-          seus resultados.
+          {subtitle}
         </motion.p>
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
-          className="flex flex-col items-center justify-center space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0"
+          variants={itemVariants}
+          className="flex flex-col items-center justify-center gap-4 sm:flex-row"
         >
           <Link
             href="/contrato"
-            className="inline-flex items-center rounded-lg bg-white px-6 py-3 text-lg font-medium text-purple-800 transition-all hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-purple-300"
+            aria-label="Solicitar um orçamento"
+            className="group inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-lg font-semibold text-purple-800 shadow-lg transition-all duration-300 hover:bg-gray-100 hover:-translate-y-1"
           >
-            Começar Projeto <ArrowRight className="ml-2 h-5 w-5" />
+            Iniciar Projeto <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
           </Link>
 
           <Link
             href="#servicos"
-            className="inline-flex items-center rounded-lg border-2 border-white bg-transparent px-6 py-3 text-lg font-medium text-white transition-all hover:bg-white/10 focus:outline-none focus:ring-4 focus:ring-purple-300"
+            aria-label="Conhecer nossos serviços"
+            className="group inline-flex items-center justify-center rounded-full border-2 border-white/80 px-6 py-3 text-lg font-semibold text-white transition-all duration-300 hover:border-white hover:bg-white/10 hover:-translate-y-1"
           >
             Nossos Serviços
           </Link>
         </motion.div>
       </motion.div>
 
-      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent"></div>
+      <div
+        className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white to-transparent pointer-events-none"
+        aria-hidden="true"
+      />
     </section>
   )
 }
