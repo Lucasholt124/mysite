@@ -55,6 +55,8 @@ type MaintenanceDetails = {
   otherInfo: string
 }
 
+
+
 type FormData = {
   name: string
   email: string
