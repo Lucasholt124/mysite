@@ -13,6 +13,9 @@ import {
   Cog,
   Globe,
   X,
+  Shield,
+  CreditCard,
+  Info,
 } from "lucide-react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -67,6 +70,8 @@ type FormData = {
   maintenancePlan: string
   paymentId: string
   maintenanceDetails: MaintenanceDetails
+  paymentStructure: string
+  exactBudget: string
 }
 
 type DocumentValidation = {
@@ -108,6 +113,8 @@ export default function ContractForm() {
       siteLink: "",
       otherInfo: "",
     },
+    paymentStructure: "40-30-30",
+    exactBudget: "",
   })
 
   const [documentValidation, setDocumentValidation] = useState<DocumentValidation>({
@@ -134,7 +141,6 @@ export default function ContractForm() {
     if (formData.cpf && documentValidation.touched) {
       validateDocument(formData.cpf)
     }
-
   }, [formData.cpf, documentValidation.touched])
 
   const validateDocument = (value: string) => {
@@ -242,18 +248,26 @@ export default function ContractForm() {
         setSubmitting(false)
         return false
       }
+
+      // Adiciona o valor total calculado ao payload
+      const contractPayload = {
+        ...formData,
+        totalAmount: getPaymentBreakdown().total,
+        firstPayment: getPaymentBreakdown().entrada,
+      }
+
       const response = await fetch("/api/contract", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(contractPayload),
       })
       const responseText = await response.text()
       let responseData
-     try {
-  responseData = JSON.parse(responseText)
-} catch {
-  throw new Error("Erro ao analisar resposta do servidor")
-}
+      try {
+        responseData = JSON.parse(responseText)
+      } catch {
+        throw new Error("Erro ao analisar resposta do servidor")
+      }
       if (!response.ok) {
         throw new Error(responseData.message || "Erro ao enviar dados do contrato")
       }
@@ -300,14 +314,31 @@ export default function ContractForm() {
     try {
       setPaymentProcessing(true)
       setSubmitError("")
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+
+      const paymentPayload = {
+        paymentMethod,
+        paymentId: formData.paymentId,
+        amount: formData.serviceType === "project"
+          ? getPaymentBreakdown().entrada
+          : maintenancePlans.find(p => p.id === formData.maintenancePlan)?.price,
+        serviceType: formData.serviceType,
+      }
+
       const response = await fetch("/api/payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ paymentMethod, paymentId: formData.paymentId }),
+        body: JSON.stringify(paymentPayload),
       })
+
       if (!response.ok) throw new Error("Falha ao processar o pagamento")
-      router.push("/pagamento-sucesso")
+
+      const data = await response.json()
+
+      if (data.success) {
+        router.push("/pagamento-sucesso")
+      } else {
+        throw new Error(data.message || "Erro no processamento do pagamento")
+      }
     } catch (error: unknown) {
       setSubmitError(
         error instanceof Error
@@ -316,6 +347,58 @@ export default function ContractForm() {
       )
     } finally {
       setPaymentProcessing(false)
+    }
+  }
+
+  // Função para calcular valores reais de pagamento
+  const getPaymentBreakdown = () => {
+    // Se tem valor exato digitado, usa ele
+    if (formData.exactBudget) {
+      const total = parseFloat(formData.exactBudget)
+      if (formData.paymentStructure === "40-30-30") {
+        return {
+          entrada: total * 0.4,
+          segunda: total * 0.3,
+          terceira: total * 0.3,
+          total: total
+        }
+      } else {
+        return {
+          entrada: total * 0.5,
+          segunda: total * 0.5,
+          terceira: 0,
+          total: total
+        }
+      }
+    }
+
+    // Senão usa a faixa selecionada
+    const budgetRange = formData.budget
+    let total = 0
+
+    switch(budgetRange) {
+      case "1000-1500": total = 1250; break
+      case "1500-2500": total = 2000; break
+      case "2500-3500": total = 3000; break
+      case "3500-5000": total = 4250; break
+      case "5000+": total = 5000; break
+      default: total = 1500
+    }
+
+    if (formData.paymentStructure === "40-30-30") {
+      return {
+        entrada: total * 0.4,
+        segunda: total * 0.3,
+        terceira: total * 0.3,
+        total: total
+      }
+    } else {
+      return {
+        entrada: total * 0.5,
+        segunda: total * 0.5,
+        terceira: 0,
+        total: total
+      }
     }
   }
 
@@ -484,8 +567,17 @@ export default function ContractForm() {
                       Projeto Único
                     </h3>
                     <p className="text-sm text-gray-600">
-                      Desenvolvimento de site institucional ou sistema personalizado, com pagamento único.
+                      Desenvolvimento de site institucional ou sistema personalizado.
                     </p>
+                    <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="flex items-center gap-2 text-blue-800">
+                        <Shield className="h-4 w-4" />
+                        <span className="font-semibold text-sm">Proteção Total</span>
+                      </div>
+                      <p className="text-xs text-blue-700 mt-1">
+                        Entrada de 40% ou 50% + parcelas. Seu projeto seguro e garantido.
+                      </p>
+                    </div>
                   </TabsContent>
 
                   <TabsContent
@@ -498,6 +590,15 @@ export default function ContractForm() {
                     <p className="text-sm text-gray-600">
                       Serviço mensal para manutenção, atualizações e proteção do seu site ou sistema.
                     </p>
+                    <div className="mt-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                      <div className="flex items-center gap-2 text-green-800">
+                        <CreditCard className="h-4 w-4" />
+                        <span className="font-semibold text-sm">Pagamento Mensal</span>
+                      </div>
+                      <p className="text-xs text-green-700 mt-1">
+                        Cancele quando quiser. Sem multas ou taxas extras.
+                      </p>
+                    </div>
                   </TabsContent>
                 </Tabs>
               </div>
@@ -627,7 +728,12 @@ export default function ContractForm() {
 
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div className="space-y-2">
-                      <Label htmlFor="budget">Orçamento Estimado</Label>
+                      <Label htmlFor="budget">
+                        Orçamento Estimado
+                        <span className="ml-1 text-purple-600 cursor-help" title="Valores especiais para novos clientes">
+                          <Info className="inline h-3 w-3" />
+                        </span>
+                      </Label>
                       <Select
                         onValueChange={(value: string) =>
                           handleSelectChange("budget", value)
@@ -640,11 +746,14 @@ export default function ContractForm() {
                           <SelectItem value="1000-1500">
                             R$ 1.000 - R$ 1.500
                           </SelectItem>
-                          <SelectItem value="2000-2500">
-                            R$ 2.000 - R$ 2.500
+                          <SelectItem value="1500-2500">
+                            R$ 1.500 - R$ 2.500
                           </SelectItem>
-                          <SelectItem value="3000-3500">
-                            R$ 3.000 - R$ 3.500
+                          <SelectItem value="2500-3500">
+                            R$ 2.500 - R$ 3.500
+                          </SelectItem>
+                          <SelectItem value="3500-5000">
+                            R$ 3.500 - R$ 5.000
                           </SelectItem>
                           <SelectItem value="5000+">
                             Acima de R$ 5.000
@@ -663,14 +772,110 @@ export default function ContractForm() {
                           <SelectValue placeholder="Selecione um prazo" />
                         </SelectTrigger>
                         <SelectContent className="bg-white border border-zinc-300 text-black">
-                          <SelectItem value="1-2-weeks">1-2 semanas</SelectItem>
-                          <SelectItem value="2-4-weeks">2-4 semanas</SelectItem>
+                          <SelectItem value="2-3-weeks">2-3 semanas</SelectItem>
+                          <SelectItem value="3-4-weeks">3-4 semanas</SelectItem>
                           <SelectItem value="1-2-months">1-2 meses</SelectItem>
+                          <SelectItem value="2-3-months">2-3 meses</SelectItem>
                           <SelectItem value="3+-months">3+ meses</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
+
+                  {/* Campo para valor exato */}
+                  <div className="space-y-2">
+                    <Label htmlFor="exactBudget">
+                      Valor Exato do Projeto (Opcional)
+                    </Label>
+                    <Input
+                      id="exactBudget"
+                      name="exactBudget"
+                      type="number"
+                      step="0.01"
+                      placeholder="Ex: 2750.00"
+                      value={formData.exactBudget}
+                      onChange={handleChange}
+                    />
+                    <p className="text-xs text-gray-500">
+                      Digite um valor específico ou deixe em branco para usar a faixa selecionada acima.
+                    </p>
+                  </div>
+
+                  {/* Estrutura de Pagamento */}
+                  <div className="space-y-2">
+                    <Label>
+                      Estrutura de Pagamento
+                      <span className="ml-1 text-purple-600 cursor-help" title="Escolha como prefere dividir o pagamento">
+                        <Info className="inline h-3 w-3" />
+                      </span>
+                    </Label>
+                    <RadioGroup
+                      value={formData.paymentStructure}
+                      onValueChange={(value: string) =>
+                        handleSelectChange("paymentStructure", value)
+                      }
+                      className="space-y-3"
+                    >
+                      <div className="flex items-start space-x-2 p-3 border rounded-lg hover:bg-gray-50">
+                        <RadioGroupItem
+                          value="40-30-30"
+                          id="payment-40-30-30"
+                          className="mt-1 border bg-white data-[state=checked]:bg-purple-600 data-[state=checked]:text-white"
+                        />
+                        <Label htmlFor="payment-40-30-30" className="cursor-pointer flex-1">
+                          <div className="font-semibold">3 Parcelas (40% + 30% + 30%)</div>
+                          <div className="text-sm text-gray-600">
+                            40% entrada, 30% aprovação do design, 30% entrega final
+                          </div>
+                        </Label>
+                      </div>
+                      <div className="flex items-start space-x-2 p-3 border rounded-lg hover:bg-gray-50">
+                        <RadioGroupItem
+                          value="50-50"
+                          id="payment-50-50"
+                          className="mt-1 border bg-white data-[state=checked]:bg-purple-600 data-[state=checked]:text-white"
+                        />
+                        <Label htmlFor="payment-50-50" className="cursor-pointer flex-1">
+                          <div className="font-semibold">2 Parcelas (50% + 50%)</div>
+                          <div className="text-sm text-gray-600">
+                            50% entrada, 50% na entrega final
+                          </div>
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+
+                  {/* Preview do Pagamento Real */}
+                  {(formData.budget || formData.exactBudget) && (
+                    <Alert className="border-purple-200 bg-purple-50">
+                      <CreditCard className="h-4 w-4 text-purple-600" />
+                      <AlertTitle className="text-purple-900">Valores de Pagamento</AlertTitle>
+                      <AlertDescription className="text-purple-700">
+                        {formData.paymentStructure === "40-30-30" ? (
+                          <>
+                            <div className="mt-2 space-y-1">
+                              <div>• Entrada (40%): R$ {getPaymentBreakdown().entrada.toFixed(2)}</div>
+                              <div>• Aprovação (30%): R$ {getPaymentBreakdown().segunda.toFixed(2)}</div>
+                              <div>• Entrega (30%): R$ {getPaymentBreakdown().terceira.toFixed(2)}</div>
+                              <div className="font-semibold pt-1 border-t border-purple-300 mt-2">
+                                Total: R$ {getPaymentBreakdown().total.toFixed(2)}
+                              </div>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="mt-2 space-y-1">
+                              <div>• Entrada (50%): R$ {getPaymentBreakdown().entrada.toFixed(2)}</div>
+                              <div>• Entrega (50%): R$ {getPaymentBreakdown().segunda.toFixed(2)}</div>
+                              <div className="font-semibold pt-1 border-t border-purple-300 mt-2">
+                                Total: R$ {getPaymentBreakdown().total.toFixed(2)}
+                              </div>
+                            </div>
+                          </>
+                        )}
+                      </AlertDescription>
+                    </Alert>
+                  )}
                 </>
               ) : (
                 <div className="space-y-4">
@@ -778,10 +983,11 @@ export default function ContractForm() {
                 </div>
                 <div className="max-h-[350px] overflow-y-auto text-sm text-gray-700 space-y-4">
                   <p>
-                    <strong>CONTRATO DE PRESTAÇÃO DE SERVIÇOS</strong>
+                    <strong>CONTRATO DE PRESTAÇÃO DE SERVIÇOS DIGITAIS</strong>
                     <br />
-                    Entre Impulsioneweb e {formData.name || "[Nome do Cliente]"}
+                    Entre Impulsioneweb (CONTRATADA) e {formData.name || "[Nome do Cliente]"} (CONTRATANTE)
                   </p>
+
                   <p>
                     <strong>1. OBJETIVO DO CONTRATO</strong>
                     <br />
@@ -791,63 +997,179 @@ export default function ContractForm() {
                         {formData.projectType === "website"
                           ? "desenvolvimento de website institucional"
                           : "desenvolvimento de sistema personalizado"}
-                        {" "}pela CONTRATADA à CONTRATANTE, conforme especificações detalhadas no Anexo I.
+                        {" "}pela CONTRATADA à CONTRATANTE, conforme especificações acordadas.
                       </>
                     ) : (
                       <>
-                        O presente contrato tem como objeto a prestação de serviços de manutenção e suporte para plataformas digitais, no Plano {formData.maintenancePlan || "Básico"}, conforme as especificações no Anexo I.
+                        O presente contrato tem como objeto a prestação de serviços de manutenção e suporte para plataformas digitais, no Plano {formData.maintenancePlan || "Básico"}, com renovação mensal automática.
                       </>
                     )}
                   </p>
+
                   <p>
                     <strong>2. PRAZO DE EXECUÇÃO</strong>
                     <br />
                     {formData.serviceType === "project" ? (
                       <>
-                        Os serviços serão executados dentro do prazo estimado de {formData.timeline || "[prazo]"} após a assinatura e pagamento da primeira parcela.
+                        Os serviços serão executados dentro do prazo estimado de {formData.timeline || "[prazo]"} após a confirmação do pagamento da entrada (primeira parcela). Atrasos causados pela CONTRATANTE (demora na entrega de conteúdo, aprovações, etc.) poderão estender o prazo proporcionalmente.
                       </>
                     ) : (
                       <>
-                        Os serviços são prestados mensalmente, com renovação automática e podem ser cancelados com aviso prévio de 30 dias.
+                        Os serviços são prestados mensalmente, com renovação automática. O cancelamento pode ser solicitado com aviso prévio de 30 dias, sem multas ou taxas adicionais.
                       </>
                     )}
                   </p>
+
                   <p>
                     <strong>3. VALOR E FORMA DE PAGAMENTO</strong>
                     <br />
                     {formData.serviceType === "project" ? (
                       <>
-                        O valor dos serviços será determinado após análise detalhada do projeto. O pagamento será feito em parcelas, com a primeira no momento da assinatura do contrato.
+                        <strong>Estrutura de Pagamento: {formData.paymentStructure === "40-30-30" ? "3 parcelas" : "2 parcelas"}</strong>
+                        <br />
+                        {formData.paymentStructure === "40-30-30" ? (
+                          <>
+                            • 1ª Parcela (40%): R$ {getPaymentBreakdown().entrada.toFixed(2)} - Na assinatura do contrato<br />
+                            • 2ª Parcela (30%): R$ {getPaymentBreakdown().segunda.toFixed(2)} - Na aprovação do design/protótipo<br />
+                            • 3ª Parcela (30%): R$ {getPaymentBreakdown().terceira.toFixed(2)} - Na entrega final do projeto<br />
+                          </>
+                        ) : (
+                          <>
+                            • 1ª Parcela (50%): R$ {getPaymentBreakdown().entrada.toFixed(2)} - Na assinatura do contrato<br />
+                            • 2ª Parcela (50%): R$ {getPaymentBreakdown().segunda.toFixed(2)} - Na entrega final do projeto<br />
+                          </>
+                        )}
+                        <br />
+                        <strong>Total: R$ {getPaymentBreakdown().total.toFixed(2)}</strong>
                       </>
                     ) : (
                       <>
                         O valor mensal do Plano {formData.maintenancePlan || "Básico"} é de R${" "}
-                        {maintenancePlans.find((p) => p.id === formData.maintenancePlan)?.price || "100,00"}, a ser pago via cobrança recorrente.
+                        {maintenancePlans.find((p) => p.id === formData.maintenancePlan)?.price || "100,00"}, com vencimento todo dia 10 de cada mês. Pagamento via cartão de crédito, boleto ou PIX.
                       </>
                     )}
                   </p>
+
                   <p>
-                    <strong>4. OBRIGAÇÕES DA CONTRATADA</strong>
+                    <strong>4. POLÍTICA DE PAGAMENTO E INADIMPLÊNCIA</strong>
                     <br />
-                    A CONTRATADA compromete-se a prestar os serviços conforme acordado, mantendo sigilo sobre as informações da CONTRATANTE.
+                    {formData.serviceType === "project" ? (
+                      <>
+                        • O não pagamento de qualquer parcela suspende imediatamente o desenvolvimento do projeto.<br />
+                        • Atraso superior a 7 dias incorre em multa de 2% + juros de 1% ao mês.<br />
+                        • A CONTRATADA reserva o direito de propriedade sobre todo o trabalho desenvolvido até a quitação total.<br />
+                        • Em caso de inadimplência superior a 30 dias, o contrato será rescindido e os valores pagos não serão devolvidos.
+                      </>
+                    ) : (
+                      <>
+                        • O atraso no pagamento mensal suspende os serviços após 5 dias do vencimento.<br />
+                        • Sites/sistemas podem ser colocados offline após 15 dias de inadimplência.<br />
+                        • A reativação dos serviços ocorre em até 24h após confirmação do pagamento.
+                      </>
+                    )}
                   </p>
+
                   <p>
-                    <strong>5. OBRIGAÇÕES DA CONTRATANTE</strong>
+                    <strong>5. OBRIGAÇÕES DA CONTRATADA</strong>
                     <br />
-                    A CONTRATANTE compromete-se a fornecer todas as informações necessárias para a execução dos serviços e efetuar os pagamentos conforme combinado.
+                    • Executar os serviços conforme especificações acordadas<br />
+                    • Manter sigilo sobre informações confidenciais da CONTRATANTE<br />
+                    • Fornecer suporte técnico durante o período de desenvolvimento<br />
+                    • Entregar o projeto dentro do prazo estipulado (salvo atrasos causados pela CONTRATANTE)<br />
+                    {formData.serviceType === "project" && "• Oferecer 30 dias de garantia para correção de bugs após a entrega"}
                   </p>
+
                   <p>
-                    <strong>6. PROPRIEDADE INTELECTUAL</strong>
+                    <strong>6. OBRIGAÇÕES DA CONTRATANTE</strong>
                     <br />
-                    Após a conclusão dos serviços e quitação total do pagamento, a propriedade intelectual dos produtos desenvolvidos será transferida à CONTRATANTE.
+                    • Efetuar os pagamentos conforme estabelecido neste contrato<br />
+                    • Fornecer todas as informações e materiais necessários em tempo hábil<br />
+                    • Aprovar etapas do projeto dentro de 3 dias úteis<br />
+                    • Não solicitar alterações significativas após aprovação de etapas<br />
+                    • Respeitar os direitos autorais e propriedade intelectual
                   </p>
+
                   <p>
-                    <strong>7. FORO</strong>
+                    <strong>7. PROPRIEDADE INTELECTUAL E DIREITOS</strong>
                     <br />
-                    Fica eleito o foro da comarca de São Paulo para dirimir quaisquer controvérsias oriundas deste contrato.
+                    • A propriedade total do projeto só é transferida após quitação completa<br />
+                    • Códigos e tecnologias proprietárias da CONTRATADA permanecem sob sua propriedade<br />
+                    • A CONTRATANTE não pode revender ou redistribuir o código-fonte sem autorização<br />
+                    • A CONTRATADA pode incluir o projeto em seu portfólio
+                  </p>
+
+                  <p>
+                    <strong>8. GARANTIA E SUPORTE</strong>
+                    <br />
+                    {formData.serviceType === "project" ? (
+                      <>
+                        • 30 dias de garantia para correção de bugs após a entrega<br />
+                        • Suporte técnico básico por 60 dias via email<br />
+                        • Alterações e novas funcionalidades serão orçadas à parte<br />
+                        • Treinamento básico para uso do sistema (se aplicável)
+                      </>
+                    ) : (
+                      <>
+                        • Suporte contínuo conforme plano contratado<br />
+                        • Tempo de resposta: Básico (48h), Intermediário (24h), Avançado (12h), Premium (2h)<br />
+                        • Backups diários com retenção de 30 dias<br />
+                        • Relatórios de desempenho mensais (planos Avançado e Premium)
+                      </>
+                    )}
+                  </p>
+
+                  <p>
+                    <strong>9. CANCELAMENTO E RESCISÃO</strong>
+                    <br />
+                    {formData.serviceType === "project" ? (
+                      <>
+                        • Cancelamento pela CONTRATANTE: valores pagos não são reembolsáveis<br />
+                        • Cancelamento pela CONTRATADA: devolução proporcional ao trabalho não realizado<br />
+                        • Mudanças significativas no escopo podem resultar em novo orçamento<br />
+                        • Disputas serão resolvidas preferencialmente por mediação
+                      </>
+                    ) : (
+                      <>
+                        • Cancelamento sem multas com aviso de 30 dias<br />
+                        • Exportação de dados fornecida em até 15 dias após cancelamento<br />
+                        • Não há reembolso de mensalidades já pagas<br />
+                        • Serviços extras já executados devem ser quitados
+                      </>
+                    )}
+                  </p>
+
+                  <p>
+                    <strong>10. DISPOSIÇÕES GERAIS</strong>
+                    <br />
+                    • Este contrato é regido pelas leis brasileiras<br />
+                    • Alterações só são válidas se acordadas por escrito<br />
+                    • A tolerância a descumprimentos não implica em renúncia de direitos<br />
+                    • Comunicações oficiais devem ser feitas por email cadastrado
+                  </p>
+
+                  <p>
+                    <strong>11. FORO</strong>
+                    <br />
+                    Fica eleito o foro da comarca de Ribeirópolis-SE para dirimir quaisquer controvérsias oriundas deste contrato, com renúncia expressa a qualquer outro, por mais privilegiado que seja.
+                  </p>
+
+                  <p className="mt-4 pt-4 border-t border-gray-400">
+                    <strong>DATA:</strong> {new Date().toLocaleDateString('pt-BR')}<br />
+                    <strong>CONTRATANTE:</strong> {formData.name || "[Nome]"}<br />
+                    <strong>CPF/CNPJ:</strong> {formData.cpf || "[Documento]"}<br />
+                    <strong>EMAIL:</strong> {formData.email || "[Email]"}
                   </p>
                 </div>
               </div>
+
+              <Alert className="border-amber-200 bg-amber-50">
+                <Info className="h-4 w-4 text-amber-600" />
+                <AlertTitle className="text-amber-900">Importante</AlertTitle>
+                <AlertDescription className="text-amber-700">
+                  Este é um contrato digital juridicamente válido. Ao aceitar, você concorda com todos os termos e condições estabelecidos. Uma cópia será enviada para seu email.
+                </AlertDescription>
+              </Alert>
+
               <div className="flex items-start gap-3 p-4 bg-white rounded-md border border-gray-300 shadow-sm">
                 <div className="pt-1">
                   <Checkbox
@@ -862,14 +1184,15 @@ export default function ContractForm() {
                     htmlFor="terms"
                     className="text-sm font-semibold text-gray-800 cursor-pointer"
                   >
-                    Aceito os termos e condições
+                    Li, compreendi e aceito todos os termos e condições
                   </label>
                   <p className="text-sm text-gray-600 leading-snug">
-                    Ao marcar esta caixa, você concorda com os termos acima e autoriza o início do processo.
+                    Ao marcar esta caixa, você concorda com os termos acima e autoriza o início do processo. Este contrato entrará em vigor após o pagamento da primeira parcela.
                   </p>
                 </div>
               </div>
             </CardContent>
+
             <CardFooter className="flex justify-between mt-6">
               <Button
                 variant="outline"
@@ -883,7 +1206,7 @@ export default function ContractForm() {
                 disabled={!formData.termsAccepted}
                 className="bg-purple-600 hover:bg-purple-700 text-white"
               >
-                Assinar e Prosseguir <ArrowRight className="ml-2 h-4 w-4" />
+                Assinar e Prosseguir para Pagamento <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </CardFooter>
           </Card>
@@ -892,9 +1215,14 @@ export default function ContractForm() {
         {step === 3 && (
           <Card className="w-full">
             <CardHeader>
-              <CardTitle className="text-2xl font-bold">Pagamento</CardTitle>
+              <CardTitle className="text-2xl font-bold">
+                {formData.serviceType === "project" ? "Pagamento da Entrada" : "Pagamento do Plano"}
+              </CardTitle>
               <CardDescription>
-                Escolha a forma de pagamento para finalizar seu contrato
+                {formData.serviceType === "project"
+                  ? `Efetue o pagamento da entrada (R$ ${getPaymentBreakdown().entrada.toFixed(2)}) para iniciarmos seu projeto`
+                  : "Escolha a forma de pagamento para ativar seu plano de manutenção"
+                }
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -906,13 +1234,28 @@ export default function ContractForm() {
                   </p>
                 </div>
                 <p className="mt-2 text-sm">
-                  Seu contrato foi assinado digitalmente. Agora, escolha a forma de pagamento para iniciarmos seu{" "}
                   {formData.serviceType === "project"
-                    ? "projeto"
-                    : "plano de manutenção"}
-                  .
+                    ? "Após a confirmação do pagamento da entrada, iniciaremos imediatamente o desenvolvimento do seu projeto."
+                    : "Após a confirmação do pagamento, seu plano será ativado imediatamente."
+                  }
                 </p>
               </div>
+
+              {formData.serviceType === "project" && (
+                <Alert className="mb-6 border-blue-200 bg-blue-50">
+                  <Shield className="h-4 w-4 text-blue-600" />
+                  <AlertTitle className="text-blue-900">Pagamento Seguro</AlertTitle>
+                  <AlertDescription className="text-blue-700">
+                    <div className="mt-2 space-y-1">
+                      <div>• Valor da entrada: R$ {getPaymentBreakdown().entrada.toFixed(2)}</div>
+                      <div>• Início imediato após confirmação</div>
+                      <div>• Garantia de 30 dias após entrega</div>
+                      <div>• Suporte durante todo desenvolvimento</div>
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              )}
+
               <RadioGroup
                 value={paymentMethod}
                 onValueChange={(value: string) => setPaymentMethod(value)}
@@ -920,22 +1263,18 @@ export default function ContractForm() {
               >
                 {[
                   {
+                    value: "pix",
+                    label: "PIX",
+                    description: "Pagamento instantâneo - Início imediato",
+                    recommended: true,
+                  },
+                  {
                     value: "credit-card",
                     label: "Cartão de Crédito",
                     description:
                       formData.serviceType === "project"
-                        ? "Pagamento em até 12x"
+                        ? "Parcele a entrada em até 3x sem juros"
                         : "Cobrança mensal automática",
-                  },
-                  {
-                    value: "debit-card",
-                    label: "Cartão de Débito",
-                    description: "Pagamento à vista",
-                  },
-                  {
-                    value: "pix",
-                    label: "PIX",
-                    description: "Transferência instantânea",
                   },
                   {
                     value: "boleto",
@@ -945,7 +1284,11 @@ export default function ContractForm() {
                 ].map((method) => (
                   <div
                     key={method.value}
-                    className="flex items-center space-x-3 rounded-lg border border-gray-200 p-4 hover:border-purple-300 transition"
+                    className={`flex items-center space-x-3 rounded-lg border p-4 transition ${
+                      method.recommended
+                        ? "border-purple-300 bg-purple-50"
+                        : "border-gray-200 hover:border-purple-300"
+                    }`}
                   >
                     <RadioGroupItem
                       id={method.value}
@@ -953,7 +1296,14 @@ export default function ContractForm() {
                       className="border-purple-500 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
                     />
                     <Label htmlFor={method.value} className="cursor-pointer flex-1">
-                      <div className="font-semibold">{method.label}</div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold">{method.label}</span>
+                        {method.recommended && (
+                          <span className="text-xs bg-purple-600 text-white px-2 py-0.5 rounded">
+                            Recomendado
+                          </span>
+                        )}
+                      </div>
                       <div className="text-sm text-gray-500">
                         {method.description}
                       </div>
@@ -961,6 +1311,7 @@ export default function ContractForm() {
                   </div>
                 ))}
               </RadioGroup>
+
               {paymentMethod && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
@@ -971,8 +1322,41 @@ export default function ContractForm() {
                   <h3 className="mb-4 text-lg font-semibold">
                     Detalhes do Pagamento
                   </h3>
+
+                  {paymentMethod === "pix" && (
+                    <div className="space-y-4">
+                      <Alert className="border-green-200 bg-green-50">
+                        <Info className="h-4 w-4 text-green-600" />
+                        <AlertDescription className="text-green-700">
+                          <strong>Valor: R$ {
+                            formData.serviceType === "project"
+                              ? getPaymentBreakdown().entrada.toFixed(2)
+                              : maintenancePlans.find(p => p.id === formData.maintenancePlan)?.price.toFixed(2)
+                          }</strong>
+                          <br />
+                          PIX válido por 30 minutos. Após o pagamento, o início é imediato.
+                        </AlertDescription>
+                      </Alert>
+                      <PixQRCode paymentId={formData.paymentId} />
+                    </div>
+                  )}
+
                   {paymentMethod === "credit-card" && (
                     <div className="space-y-4">
+                      <Alert className="border-blue-200 bg-blue-50 mb-4">
+                        <CreditCard className="h-4 w-4 text-blue-600" />
+                        <AlertDescription className="text-blue-700">
+                          <strong>Valor: R$ {
+                            formData.serviceType === "project"
+                              ? getPaymentBreakdown().entrada.toFixed(2)
+                              : maintenancePlans.find(p => p.id === formData.maintenancePlan)?.price.toFixed(2)
+                          }</strong>
+                          {formData.serviceType === "project" && (
+                            <span className="block mt-1">Você pode parcelar a entrada em até 3x sem juros</span>
+                          )}
+                        </AlertDescription>
+                      </Alert>
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="card-number">
@@ -999,85 +1383,52 @@ export default function ContractForm() {
                           <Input id="cvv" placeholder="123" />
                         </div>
                       </div>
-                      {formData.serviceType === "project" ? (
+
+                      {formData.serviceType === "project" && (
                         <div>
-                          <Label htmlFor="installments">Parcelas</Label>
+                          <Label htmlFor="installments">Parcelas da Entrada</Label>
                           <Select defaultValue="1">
                             <SelectTrigger id="installments">
                               <SelectValue placeholder="Selecione o número de parcelas" />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="1">
-                                1x de R$ 1.000,00 (sem juros)
+                                1x de R$ {getPaymentBreakdown().entrada.toFixed(2)} (à vista)
                               </SelectItem>
                               <SelectItem value="2">
-                                2x de R$ 500,00 (sem juros)
+                                2x de R$ {(getPaymentBreakdown().entrada / 2).toFixed(2)} (sem juros)
                               </SelectItem>
                               <SelectItem value="3">
-                                3x de R$ 333,33 (sem juros)
-                              </SelectItem>
-                              <SelectItem value="6">
-                                6x de R$ 166,67 (sem juros)
-                              </SelectItem>
-                              <SelectItem value="12">
-                                12x de R$ 83,33 (sem juros)
+                                3x de R$ {(getPaymentBreakdown().entrada / 3).toFixed(2)} (sem juros)
                               </SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
-                      ) : (
-                        <div className="p-3 bg-blue-50 rounded-md text-blue-700 text-sm">
-                          Seu cartão será cobrado mensalmente no valor de R${" "}
-                          {maintenancePlans.find(
-                            (p) => p.id === formData.maintenancePlan
-                          )?.price || "100,00"}
-                          . Você pode cancelar a qualquer momento.
-                        </div>
                       )}
                     </div>
                   )}
-                  {paymentMethod === "debit-card" && (
+
+                  {paymentMethod === "boleto" && (
                     <div className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="debit-number">
-                            Número do Cartão
-                          </Label>
-                          <Input
-                            id="debit-number"
-                            placeholder="0000 0000 0000 0000"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="debit-name">Nome no Cartão</Label>
-                          <Input
-                            id="debit-name"
-                            placeholder="Nome como aparece no cartão"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="debit-expiry">
-                            Data de Validade
-                          </Label>
-                          <Input id="debit-expiry" placeholder="MM/AA" />
-                        </div>
-                        <div>
-                          <Label htmlFor="debit-cvv">CVV</Label>
-                          <Input id="debit-cvv" placeholder="123" />
-                        </div>
-                      </div>
-                      <div className="p-3 bg-blue-50 rounded-md text-blue-700 text-sm">
-                        O valor será debitado imediatamente da sua conta.
-                      </div>
+                      <Alert className="border-amber-200 bg-amber-50">
+                        <AlertCircle className="h-4 w-4 text-amber-600" />
+                        <AlertDescription className="text-amber-700">
+                          <strong>Valor: R$ {
+                            formData.serviceType === "project"
+                              ? getPaymentBreakdown().entrada.toFixed(2)
+                              : maintenancePlans.find(p => p.id === formData.maintenancePlan)?.price.toFixed(2)
+                          }</strong>
+                          <br />
+                          O boleto vence em 3 dias úteis. O projeto inicia após compensação.
+                        </AlertDescription>
+                      </Alert>
+                      <BoletoPayment />
                     </div>
                   )}
-                  {paymentMethod === "pix" && (
-                    <PixQRCode paymentId={formData.paymentId} />
-                  )}
-                  {paymentMethod === "boleto" && <BoletoPayment />}
                 </motion.div>
               )}
             </CardContent>
+
             <CardFooter className="flex justify-between">
               <Button variant="outline" onClick={prevStep}>
                 <ArrowLeft className="mr-2 h-4 w-4" /> Voltar
@@ -1094,11 +1445,11 @@ export default function ContractForm() {
                 {paymentProcessing ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processando...
+                    Processando Pagamento...
                   </>
                 ) : (
                   <>
-                    Finalizar Pagamento <ArrowRight className="ml-2 h-4 w-4" />
+                    Confirmar Pagamento <ArrowRight className="ml-2 h-4 w-4" />
                   </>
                 )}
               </Button>
