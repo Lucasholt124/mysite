@@ -6,7 +6,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
-export default function BoletoPayment() {
+interface BoletoPaymentProps {
+  paymentId?: string
+  amount: number
+}
+
+export default function BoletoPayment(props: BoletoPaymentProps) {
   const [cpf, setCpf] = useState("")
   const [boletoGenerated, setBoletoGenerated] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -15,7 +20,7 @@ export default function BoletoPayment() {
     if (cpf.length > 0) {
       setIsLoading(true)
       try {
-        // In a real implementation, this would call the Asaas API
+        // In a real implementation, this would call an API to generate the boleto using the paymentId
         // For now, we'll simulate a successful response
         await new Promise((resolve) => setTimeout(resolve, 1500))
         setBoletoGenerated(true)
@@ -37,7 +42,7 @@ export default function BoletoPayment() {
               <p className="text-sm text-gray-500">Vencimento em 3 dias úteis</p>
             </div>
             <div className="text-right">
-              <p className="font-bold text-lg">R$ 1.000,00</p>
+              <p className="font-bold text-lg">R$ {props.amount.toFixed(2).replace(".", ",")}</p>
             </div>
           </div>
 
@@ -105,7 +110,7 @@ export default function BoletoPayment() {
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">Valor</p>
-                  <p className="font-medium">R$ 1.000,00</p>
+                  <p className="font-medium">R$ {props.amount.toFixed(2).replace(".", ",")}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-xs text-gray-500">Nosso Número</p>

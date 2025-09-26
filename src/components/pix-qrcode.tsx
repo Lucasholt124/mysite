@@ -7,9 +7,10 @@ import Image from 'next/image'
 
 interface PixQRCodeProps {
   paymentId?: string
+  amount: number
 }
 
-export default function PixQRCode({ paymentId }: PixQRCodeProps) {
+export default function PixQRCode({ paymentId, amount }: PixQRCodeProps) {
   const [copied, setCopied] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -107,7 +108,10 @@ export default function PixQRCode({ paymentId }: PixQRCodeProps) {
       </div>
 
       <div className="text-center w-full">
-        <p className="mb-2 font-medium">Escaneie o QR Code com seu app bancário</p>
+        <p className="text-lg font-semibold">
+          Valor: R$ {amount.toFixed(2).replace(".", ",")}
+        </p>
+        <p className="mb-2 font-medium mt-2">Escaneie o QR Code com seu app bancário</p>
         <p className="text-sm text-gray-500 mb-4">Pagamento confirmado automaticamente</p>
 
         <div className="mb-4">
