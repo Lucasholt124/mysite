@@ -32,6 +32,10 @@ import {
   Star,
   Lock,
   Award,
+  AlertTriangle,
+  Flame,
+  Users,
+  Target,
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -93,7 +97,7 @@ type FormData = {
   maintenancePlan: string
   paymentId: string
   maintenanceDetails: MaintenanceDetails
-  paymentStructure: "50-50" | "40-30-30"
+  paymentStructure: "full" | "50-50" | "40-30-30"
   exactBudget: string
 }
 
@@ -107,95 +111,129 @@ type MaintenancePlan = {
   id: string
   name: string
   price: number
+  originalPrice: number
   features: string[]
   recommended: boolean
   icon: React.ReactNode
   badge?: string
 }
 
-// --- Dados de Configuração ---
+// --- PREÇOS COMPETITIVOS 2025 ---
 const MAINTENANCE_PLANS: MaintenancePlan[] = [
   {
     id: "basic",
-    name: "Básico",
-    price: 100,
+    name: "Essencial",
+    price: 97,
+    originalPrice: 197,
     features: [
-      "Backup diário automático",
-      "Monitoramento básico 24/7",
-      "Suporte por email em horário comercial",
-      "Atualizações de segurança mensais",
-      "Relatório mensal de performance",
+      "Backup semanal automático",
+      "Monitoramento 24/7",
+      "2 horas de suporte/mês",
+      "Atualizações de segurança",
+      "SSL incluso",
     ],
     recommended: false,
     icon: <Zap className="w-5 h-5" />,
   },
   {
-    id: "intermediate",
+    id: "professional",
     name: "Profissional",
-    price: 250,
+    price: 197,
+    originalPrice: 397,
     features: [
-      "Tudo do plano Básico",
-      "Monitoramento avançado com alertas",
-      "Suporte prioritário (email + telefone)",
-      "5 alterações de conteúdo por mês",
+      "Tudo do plano Essencial",
+      "Backup diário",
+      "5 horas de alterações/mês",
+      "Suporte prioritário",
       "Otimização SEO mensal",
-      "Backup em nuvem redundante",
+      "CDN básico",
     ],
     recommended: true,
     icon: <TrendingUp className="w-5 h-5" />,
-    badge: "Mais Popular",
+    badge: "Mais Vendido",
   },
   {
-    id: "advanced",
-    name: "Empresarial",
-    price: 500,
+    id: "business",
+    name: "Business",
+    price: 397,
+    originalPrice: 697,
     features: [
       "Tudo do plano Profissional",
-      "Monitoramento em tempo real",
-      "Suporte prioritário 24/7",
-      "Alterações de conteúdo ilimitadas",
-      "Relatórios semanais detalhados",
-      "CDN premium incluído",
-      "Testes A/B mensais",
+      "15 horas de alterações/mês",
+      "Suporte 24/7",
+      "CDN Premium",
+      "Relatórios semanais",
+      "Consultoria mensal",
     ],
     recommended: false,
     icon: <Shield className="w-5 h-5" />,
   },
   {
     id: "premium",
-    name: "Premium",
-    price: 1000,
+    name: "Enterprise",
+    price: 697,
+    originalPrice: 1297,
     features: [
-      "Tudo do plano Empresarial",
-      "Gerente de conta dedicado",
-      "Desenvolvimento de novas funcionalidades",
-      "Consultoria técnica ilimitada",
-      "SLA garantido de 99.9%",
-      "Auditoria de segurança trimestral",
-      "Treinamento para sua equipe",
-      "Suporte multi-idiomas",
+      "Tudo do plano Business",
+      "Gerente dedicado",
+      "Desenvolvimento ilimitado",
+      "SLA 99.9%",
+      "Infraestrutura dedicada",
+      "Auditoria mensal",
     ],
     recommended: false,
     icon: <Star className="w-5 h-5" />,
-    badge: "Exclusivo",
+    badge: "Premium",
   },
 ]
 
 const BUDGET_OPTIONS = [
-  { value: "1000-1500", label: "R$ 1.000 - R$ 1.500", description: "Landing Page ou Site Institucional", average: 1250 },
-  { value: "1500-2500", label: "R$ 1.500 - R$ 2.500", description: "Website com funcionalidades básicas", average: 2000 },
-  { value: "2500-3500", label: "R$ 2.500 - R$ 3.500", description: "E-commerce ou Sistema Simples", average: 3000 },
-  { value: "3500-5000", label: "R$ 3.500 - R$ 5.000", description: "Aplicativo ou Sistema Médio", average: 4250 },
-  { value: "5000+", label: "Acima de R$ 5.000", description: "Projeto Personalizado Complexo", average: 5000 },
+  {
+    value: "800-1200",
+    label: "R$ 800 - R$ 1.200",
+    description: "Landing Page Simples",
+    average: 997,
+    originalPrice: 1997
+  },
+  {
+    value: "1200-1800",
+    label: "R$ 1.200 - R$ 1.800",
+    description: "Site Institucional 5-7 páginas",
+    average: 1497,
+    originalPrice: 2497
+  },
+  {
+    value: "1800-3000",
+    label: "R$ 1.800 - R$ 3.000",
+    description: "Site Completo + Blog",
+    average: 2497,
+    originalPrice: 4497
+  },
+  {
+    value: "3000-5000",
+    label: "R$ 3.000 - R$ 5.000",
+    description: "E-commerce ou Portal",
+    average: 3997,
+    originalPrice: 6997
+  },
+  {
+    value: "5000+",
+    label: "Acima de R$ 5.000",
+    description: "Sistema Personalizado",
+    average: 5997,
+    originalPrice: 9997
+  },
 ]
 
 const TIMELINE_OPTIONS = [
-  { value: "2-3-weeks", label: "2-3 semanas", icon: <Zap className="w-4 h-4" /> },
-  { value: "3-4-weeks", label: "3-4 semanas", icon: <Clock className="w-4 h-4" /> },
+  { value: "1-2-weeks", label: "7-15 dias", icon: <Flame className="w-4 h-4" />, urgent: true },
+  { value: "2-3-weeks", label: "15-20 dias", icon: <Zap className="w-4 h-4" /> },
+  { value: "3-4-weeks", label: "20-30 dias", icon: <Clock className="w-4 h-4" /> },
   { value: "1-2-months", label: "1-2 meses", icon: <Calendar className="w-4 h-4" /> },
-  { value: "2-3-months", label: "2-3 meses", icon: <Calendar className="w-4 h-4" /> },
-  { value: "3+-months", label: "3+ meses", icon: <Calendar className="w-4 h-4" /> },
+  { value: "flexible", label: "Flexível", icon: <Calendar className="w-4 h-4" /> },
 ]
+
+const PAYMENT_DISCOUNT = 10; // 10% desconto à vista
 
 // --- Componente Principal ---
 export default function ContractForm() {
@@ -237,8 +275,9 @@ export default function ContractForm() {
   const [submitError, setSubmitError] = useState<string>("")
   const [paymentProcessing, setPaymentProcessing] = useState<boolean>(false)
 
-  // NOVO: Estado para o contador de urgência (15 minutos)
-  const [timeLeft, setTimeLeft] = useState(15 * 60);
+  // Timer de 48 horas para oferta
+  const [timeLeft, setTimeLeft] = useState(48 * 60 * 60);
+  const [spotsLeft] = useState(5); // Vagas limitadas
 
   useEffect(() => {
     if (typeParam) {
@@ -255,7 +294,6 @@ export default function ContractForm() {
     }
   }, [formData.cpf, documentValidation.touched])
 
-  // NOVO: useEffect para o contador
   useEffect(() => {
     if (step !== 3 || timeLeft <= 0) return;
 
@@ -293,7 +331,7 @@ export default function ContractForm() {
     }
 
     const budgetOption = BUDGET_OPTIONS.find(opt => opt.value === formData.budget)
-    return budgetOption?.average || 1500
+    return budgetOption?.average || 997
   }
 
   const getPaymentBreakdown = useMemo(() => {
@@ -307,15 +345,32 @@ export default function ContractForm() {
         segunda: 0,
         terceira: 0,
         total: total,
+        discount: 0,
+        originalTotal: total,
       }
     }
 
-    if (formData.paymentStructure === "40-30-30") {
+    // Desconto à vista
+    const discount = formData.paymentStructure === "full" ? (total * PAYMENT_DISCOUNT) / 100 : 0;
+    const finalTotal = total - discount;
+
+    if (formData.paymentStructure === "full") {
+      return {
+        entrada: Number(finalTotal.toFixed(2)),
+        segunda: 0,
+        terceira: 0,
+        total: Number(finalTotal.toFixed(2)),
+        discount: Number(discount.toFixed(2)),
+        originalTotal: Number(total.toFixed(2)),
+      }
+    } else if (formData.paymentStructure === "40-30-30") {
       return {
         entrada: Number((total * 0.4).toFixed(2)),
         segunda: Number((total * 0.3).toFixed(2)),
         terceira: Number((total * 0.3).toFixed(2)),
         total: Number(total.toFixed(2)),
+        discount: 0,
+        originalTotal: Number(total.toFixed(2)),
       }
     } else {
       return {
@@ -323,6 +378,8 @@ export default function ContractForm() {
         segunda: Number((total * 0.5).toFixed(2)),
         terceira: 0,
         total: Number(total.toFixed(2)),
+        discount: 0,
+        originalTotal: Number(total.toFixed(2)),
       }
     }
   }, [formData.exactBudget, formData.budget, formData.paymentStructure, formData.serviceType, formData.maintenancePlan])
@@ -340,16 +397,14 @@ export default function ContractForm() {
   const isStep3Valid = useMemo(() => !!paymentMethod, [paymentMethod])
 
   const progressPercentage = useMemo(() => {
-    // The form has 3 steps, so we have 2 transitions (1->2, 2->3).
-    // This calculates progress as 0%, 50%, 100%.
     return ((step - 1) / 2) * 100
   }, [step])
 
-  // NOVO: Formata o tempo para exibição
   const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   };
 
   // --- Funções de Manipulação ---
@@ -526,7 +581,24 @@ export default function ContractForm() {
           </Link>
         </motion.div>
 
-        {/* Hero Section - Melhorado */}
+        {/* Promo Banner - ATUALIZADO */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-4xl mx-auto mb-6"
+        >
+          <Alert className="border-2 border-orange-400 bg-gradient-to-r from-orange-50 to-red-50 shadow-xl">
+            <Flame className="h-5 w-5 text-orange-600 animate-pulse" />
+            <AlertTitle className="text-orange-900 font-black text-lg">
+              🔥 Lançamento 2025 - Preços Promocionais de Entrada!
+            </AlertTitle>
+            <AlertDescription className="text-orange-800 font-semibold">
+              Apenas {spotsLeft} vagas com desconto de até 50% OFF. Sites a partir de R$ 997!
+            </AlertDescription>
+          </Alert>
+        </motion.div>
+
+        {/* Hero Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -537,30 +609,32 @@ export default function ContractForm() {
             initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2 }}
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-5 py-2.5 rounded-full text-xs md:text-sm font-semibold mb-4 md:mb-6 shadow-lg shadow-indigo-500/30"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-5 py-2.5 rounded-full text-xs md:text-sm font-semibold mb-4 md:mb-6 shadow-lg shadow-green-500/30"
           >
-            <Lock className="w-3.5 h-3.5 md:w-4 md:h-4" />
-            Ambiente 100% Seguro e Criptografado
+            <Zap className="w-3.5 h-3.5 md:w-4 md:h-4" />
+            Melhor Custo-Benefício do Mercado 2025
           </motion.div>
 
           <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-gray-900 mb-3 md:mb-5 leading-tight">
             <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Seu Projeto Digital
+              Sites Profissionais
             </span>
             <br />
-            <span className="text-gray-800">Começa Aqui</span>
+            <span className="text-gray-800">A Partir de R$ 997</span>
           </h1>
 
           <p className="text-base md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed px-4">
-            Processo simplificado em <span className="font-bold text-indigo-600">3 etapas</span> para transformar sua visão em realidade
+            Qualidade profissional com <span className="font-bold text-green-600">preços acessíveis</span>.<br />
+            <span className="text-sm text-orange-600 font-bold">Competimos com IAs, mas com suporte humano real!</span>
           </p>
 
           {/* Trust badges */}
           <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 mt-6 md:mt-8">
             {[
-              { icon: <Shield className="w-4 h-4" />, text: "Pagamento Seguro" },
-              { icon: <Award className="w-4 h-4" />, text: "Garantia Total" },
-              { icon: <Clock className="w-4 h-4" />, text: "Suporte Rápido" },
+              { icon: <DollarSign className="w-4 h-4" />, text: "Preço Justo", color: "green" },
+              { icon: <Clock className="w-4 h-4" />, text: "Entrega Rápida", color: "blue" },
+              { icon: <Shield className="w-4 h-4" />, text: "Garantia Total", color: "purple" },
+              { icon: <Users className="w-4 h-4" />, text: "Suporte Real", color: "orange" },
             ].map((badge, i) => (
               <motion.div
                 key={i}
@@ -569,7 +643,7 @@ export default function ContractForm() {
                 transition={{ delay: 0.3 + i * 0.1 }}
                 className="flex items-center gap-2 text-gray-600 text-xs md:text-sm"
               >
-                <div className="p-1.5 bg-green-50 rounded-lg text-green-600">
+                <div className={`p-1.5 bg-${badge.color}-50 rounded-lg text-${badge.color}-600`}>
                   {badge.icon}
                 </div>
                 <span className="font-medium">{badge.text}</span>
@@ -578,7 +652,7 @@ export default function ContractForm() {
           </div>
         </motion.div>
 
-        {/* Progress Bar - Melhorado */}
+        {/* Progress Bar */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -588,7 +662,7 @@ export default function ContractForm() {
           <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl p-4 md:p-8 border border-white/50">
             <div className="flex items-center justify-between mb-6">
               {[
-                { num: 1, label: "Informações", icon: <User className="w-4 h-4 md:w-5 md:h-5" />, color: "from-blue-500 to-cyan-500" },
+                { num: 1, label: "Dados", icon: <User className="w-4 h-4 md:w-5 md:h-5" />, color: "from-blue-500 to-cyan-500" },
                 { num: 2, label: "Contrato", icon: <FileText className="w-4 h-4 md:w-5 md:h-5" />, color: "from-purple-500 to-pink-500" },
                 { num: 3, label: "Pagamento", icon: <CreditCard className="w-4 h-4 md:w-5 md:h-5" />, color: "from-green-500 to-emerald-500" },
               ].map((s, index) => (
@@ -608,7 +682,7 @@ export default function ContractForm() {
                             className={cn(
                               "w-12 h-12 md:w-16 md:h-16 rounded-2xl flex items-center justify-center font-bold transition-all relative",
                               step >= s.num
-                                ? `bg-gradient-to-br ${s.color} text-white shadow-2xl shadow-${s.color.split('-')[1]}-500/50 scale-110`
+                                ? `bg-gradient-to-br ${s.color} text-white shadow-2xl scale-110`
                                 : "bg-gray-100 text-gray-400 scale-100"
                             )}
                           >
@@ -715,7 +789,7 @@ export default function ContractForm() {
                 <CheckCircle className="h-5 w-5 text-green-600" />
                 <AlertTitle className="text-green-800 font-bold">Contrato Assinado!</AlertTitle>
                 <AlertDescription className="text-green-700">
-                  O contrato foi assinado com sucesso. Prossiga para finalizar o pagamento.
+                  Contrato assinado com sucesso. Finalize o pagamento para iniciarmos.
                 </AlertDescription>
               </Alert>
             </motion.div>
@@ -742,14 +816,14 @@ export default function ContractForm() {
                     transition={{ type: "spring", stiffness: 200 }}
                     className="p-3 bg-white/20 rounded-2xl backdrop-blur"
                   >
-                    <User className="w-6 h-6 md:w-8 md:h-8" />
+                    <Target className="w-6 h-6 md:w-8 md:h-8" />
                   </motion.div>
                   <div>
                     <CardTitle className="text-2xl md:text-4xl font-black">
-                      Informações do Projeto
+                      Conte-nos Sobre Seu Projeto
                     </CardTitle>
                     <CardDescription className="text-purple-100 text-sm md:text-base mt-1">
-                      Preencha os dados para gerar sua proposta personalizada
+                      Preencha os dados para sua proposta personalizada
                     </CardDescription>
                   </div>
                 </div>
@@ -764,21 +838,21 @@ export default function ContractForm() {
                 >
                   <Label className="text-lg md:text-xl font-bold flex items-center gap-2 text-gray-900">
                     <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-indigo-600" />
-                    Tipo de Serviço
+                    O que você precisa?
                   </Label>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                     {[
                       {
                         value: "project",
-                        label: "Projeto Único",
-                        description: "Desenvolvimento de website ou sistema",
+                        label: "Criar um Projeto Novo",
+                        description: "Website, app ou sistema do zero",
                         icon: <Monitor className="w-6 h-6" />,
                         gradient: "from-blue-500 to-cyan-500"
                       },
                       {
                         value: "maintenance",
-                        label: "Plano de Manutenção",
-                        description: "Suporte e manutenção mensal",
+                        label: "Manutenção do Meu Site",
+                        description: "Suporte e melhorias contínuas",
                         icon: <Shield className="w-6 h-6" />,
                         gradient: "from-purple-500 to-pink-500"
                       },
@@ -795,7 +869,6 @@ export default function ContractForm() {
                             : "border-gray-200 bg-white hover:border-indigo-300 hover:shadow-lg"
                         )}
                       >
-                        <div className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-5 transition-opacity" style={{ backgroundImage: `linear-gradient(to bottom right, var(--tw-gradient-stops))` }} />
                         <div className="flex items-start gap-3 relative z-10">
                           <div className={cn(
                             "p-2.5 md:p-3 rounded-xl transition-all",
@@ -835,7 +908,7 @@ export default function ContractForm() {
                 >
                   <h3 className="text-lg md:text-xl font-bold flex items-center gap-2 text-gray-900">
                     <User className="w-5 h-5 md:w-6 md:h-6 text-indigo-600" />
-                    Informações Pessoais
+                    Seus Dados
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                     <div className="space-y-2 md:col-span-2">
@@ -951,7 +1024,7 @@ export default function ContractForm() {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mb-4">
                         {[
-                          { value: "website", label: "Website", icon: <Globe className="w-5 h-5" />, gradient: "from-green-500 to-emerald-500" },
+                          { value: "website", label: "Website/Portal", icon: <Globe className="w-5 h-5" />, gradient: "from-green-500 to-emerald-500" },
                           { value: "system", label: "Sistema/App", icon: <Smartphone className="w-5 h-5" />, gradient: "from-orange-500 to-red-500" },
                         ].map((type) => (
                           <motion.button
@@ -992,19 +1065,29 @@ export default function ContractForm() {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 bg-white p-4 rounded-xl shadow-sm">
                         <div className="space-y-2">
-                          <Label htmlFor="budget" className="text-sm md:text-base font-semibold">Orçamento Estimado</Label>
+                          <Label htmlFor="budget" className="text-sm md:text-base font-semibold flex items-center gap-2">
+                            Quanto Quer Investir?
+                            <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs border-0">
+                              Promoção
+                            </Badge>
+                          </Label>
                           <Select
                             value={formData.budget}
                             onValueChange={(value) => handleSelectChange("budget", value)}
                           >
                             <SelectTrigger className="h-11 md:h-12 bg-white border-gray-300 hover:border-indigo-400 focus:border-indigo-500 focus:ring-indigo-500">
-                              <SelectValue placeholder="Selecione uma faixa" />
+                              <SelectValue placeholder="Escolha sua faixa de preço" />
                             </SelectTrigger>
                             <SelectContent className="bg-white">
                               {BUDGET_OPTIONS.map((option) => (
                                 <SelectItem key={option.value} value={option.value}>
-                                  <div>
-                                    <div className="font-semibold text-gray-900">{option.label}</div>
+                                  <div className="py-1">
+                                    <div className="font-semibold text-gray-900 flex items-center gap-2">
+                                      {option.label}
+                                      <span className="text-xs line-through text-gray-400">
+                                        de R$ {option.originalPrice.toLocaleString('pt-BR')}
+                                      </span>
+                                    </div>
                                     <div className="text-xs text-gray-500">{option.description}</div>
                                   </div>
                                 </SelectItem>
@@ -1020,7 +1103,7 @@ export default function ContractForm() {
                             onValueChange={(value) => handleSelectChange("timeline", value)}
                           >
                             <SelectTrigger className="h-11 md:h-12 bg-white border-gray-300 hover:border-indigo-400 focus:border-indigo-500 focus:ring-indigo-500">
-                              <SelectValue placeholder="Selecione um prazo" />
+                              <SelectValue placeholder="Quando precisa?" />
                             </SelectTrigger>
                             <SelectContent className="bg-white">
                               {TIMELINE_OPTIONS.map((option) => (
@@ -1028,6 +1111,9 @@ export default function ContractForm() {
                                   <div className="flex items-center gap-2">
                                     {option.icon}
                                     <span className="text-gray-900">{option.label}</span>
+                                    {option.urgent && (
+                                      <Badge className="bg-red-500 text-white text-xs">Urgente</Badge>
+                                    )}
                                   </div>
                                 </SelectItem>
                               ))}
@@ -1037,7 +1123,7 @@ export default function ContractForm() {
 
                         <div className="space-y-2 md:col-span-2">
                           <Label htmlFor="exactBudget" className="text-sm md:text-base font-semibold">
-                            Valor Exato do Projeto (Opcional)
+                            Valor Exato? (Opcional)
                           </Label>
                           <Input
                             id="exactBudget"
@@ -1046,35 +1132,46 @@ export default function ContractForm() {
                             step="0.01"
                             value={formData.exactBudget}
                             onChange={handleChange}
-                            placeholder="Ex: 2750.00"
+                            placeholder="Ex: 1500.00"
                             className="h-11 md:h-12 text-base border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
                           />
                           <p className="text-xs text-gray-500">
-                            Digite um valor específico para um orçamento mais preciso
+                            Já fechou um orçamento? Digite aqui para cálculo preciso
                           </p>
                         </div>
                       </div>
 
                       <div className="space-y-4 mt-4">
-                        <Label className="text-base md:text-lg font-bold text-gray-900">Estrutura de Pagamento</Label>
+                        <Label className="text-base md:text-lg font-bold text-gray-900 flex items-center gap-2">
+                          <DollarSign className="w-5 h-5 text-green-600" />
+                          Como Prefere Pagar?
+                        </Label>
                         <RadioGroup
                           value={formData.paymentStructure}
-                          onValueChange={(value: "50-50" | "40-30-30") =>
+                          onValueChange={(value: "full" | "50-50" | "40-30-30") =>
                             handleSelectChange("paymentStructure", value)
                           }
                         >
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
                             {[
                               {
-                                value: "40-30-30",
-                                label: "3 Parcelas",
-                                description: "40% entrada + 30% design + 30% entrega",
-                                badge: "Recomendado",
+                                value: "full",
+                                label: "À Vista",
+                                description: `${PAYMENT_DISCOUNT}% de desconto!`,
+                                badge: "Economize",
+                                badgeColor: "bg-green-500"
                               },
                               {
                                 value: "50-50",
-                                label: "2 Parcelas",
-                                description: "50% entrada + 50% entrega",
+                                label: "2 Vezes",
+                                description: "50% agora + 50% depois",
+                              },
+                              {
+                                value: "40-30-30",
+                                label: "3 Vezes",
+                                description: "40% + 30% + 30%",
+                                badge: "Mais Escolhido",
+                                badgeColor: "bg-blue-500"
                               },
                             ].map((option) => (
                               <div key={option.value} className="relative">
@@ -1094,7 +1191,7 @@ export default function ContractForm() {
                                   )}
                                 >
                                   {option.badge && (
-                                    <Badge className="absolute -top-2 -right-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-lg">
+                                    <Badge className={`absolute -top-2 -right-2 ${option.badgeColor} text-white border-0 shadow-lg text-xs`}>
                                       {option.badge}
                                     </Badge>
                                   )}
@@ -1111,51 +1208,74 @@ export default function ContractForm() {
                         <motion.div
                           initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
-                          className="bg-white rounded-xl p-4 md:p-6 border-2 border-indigo-200 shadow-lg mt-4"
+                          className="bg-white rounded-xl p-4 md:p-6 border-2 border-green-200 shadow-lg mt-4"
                         >
                           <div className="flex items-start gap-3">
                             <div className="p-2.5 bg-gradient-to-br from-green-500 to-emerald-500 text-white rounded-xl shadow-lg">
                               <DollarSign className="w-5 h-5 md:w-6 md:h-6" />
                             </div>
                             <div className="flex-1">
-                              <h4 className="font-bold text-base md:text-lg text-gray-900 mb-3">
+                              <h4 className="font-bold text-base md:text-lg text-gray-900 mb-3 flex items-center gap-2">
                                 Resumo do Investimento
+                                {getPaymentBreakdown.discount > 0 && (
+                                  <Badge className="bg-green-500 text-white">
+                                    Economize R$ {getPaymentBreakdown.discount.toFixed(2)}
+                                  </Badge>
+                                )}
                               </h4>
                               <div className="space-y-2">
-                                <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                                  <span className="text-sm md:text-base text-gray-600">
-                                    Entrada ({formData.paymentStructure === "40-30-30" ? "40%" : "50%"})
-                                  </span>
-                                  <span className="font-bold text-base md:text-lg text-gray-900">
-                                    R$ {getPaymentBreakdown.entrada.toFixed(2)}
-                                  </span>
-                                </div>
-                                {formData.paymentStructure === "40-30-30" ? (
+                                {formData.paymentStructure === "full" ? (
+                                  <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                                    <span className="text-sm md:text-base text-gray-600">
+                                      À Vista ({PAYMENT_DISCOUNT}% OFF)
+                                    </span>
+                                    <div className="text-right">
+                                      <div className="text-xs line-through text-gray-400">
+                                        R$ {getPaymentBreakdown.originalTotal.toFixed(2)}
+                                      </div>
+                                      <span className="font-bold text-base md:text-lg text-green-600">
+                                        R$ {getPaymentBreakdown.entrada.toFixed(2)}
+                                      </span>
+                                    </div>
+                                  </div>
+                                ) : (
                                   <>
                                     <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                                      <span className="text-sm md:text-base text-gray-600">Aprovação do Design (30%)</span>
+                                      <span className="text-sm md:text-base text-gray-600">
+                                        {formData.paymentStructure === "40-30-30" ? "1ª (40%)" : "1ª (50%)"}
+                                      </span>
                                       <span className="font-bold text-base md:text-lg text-gray-900">
-                                        R$ {getPaymentBreakdown.segunda.toFixed(2)}
+                                        R$ {getPaymentBreakdown.entrada.toFixed(2)}
                                       </span>
                                     </div>
-                                    <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                                      <span className="text-sm md:text-base text-gray-600">Entrega Final (30%)</span>
-                                      <span className="font-bold text-base md:text-lg text-gray-900">
-                                        R$ {getPaymentBreakdown.terceira.toFixed(2)}
-                                      </span>
-                                    </div>
+                                    {formData.paymentStructure === "40-30-30" ? (
+                                      <>
+                                        <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                                          <span className="text-sm md:text-base text-gray-600">2ª (30%)</span>
+                                          <span className="font-bold text-base md:text-lg text-gray-900">
+                                            R$ {getPaymentBreakdown.segunda.toFixed(2)}
+                                          </span>
+                                        </div>
+                                        <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                                          <span className="text-sm md:text-base text-gray-600">3ª (30%)</span>
+                                          <span className="font-bold text-base md:text-lg text-gray-900">
+                                            R$ {getPaymentBreakdown.terceira.toFixed(2)}
+                                          </span>
+                                        </div>
+                                      </>
+                                    ) : (
+                                      <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                                        <span className="text-sm md:text-base text-gray-600">2ª (50%)</span>
+                                        <span className="font-bold text-base md:text-lg text-gray-900">
+                                          R$ {getPaymentBreakdown.segunda.toFixed(2)}
+                                        </span>
+                                      </div>
+                                    )}
                                   </>
-                                ) : (
-                                  <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                                    <span className="text-sm md:text-base text-gray-600">Entrega Final (50%)</span>
-                                    <span className="font-bold text-base md:text-lg text-gray-900">
-                                      R$ {getPaymentBreakdown.segunda.toFixed(2)}
-                                    </span>
-                                  </div>
                                 )}
                                 <div className="flex justify-between items-center pt-3">
-                                  <span className="text-lg md:text-xl font-black text-gray-900">Total</span>
-                                  <span className="text-xl md:text-2xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                                  <span className="text-lg md:text-xl font-black text-gray-900">TOTAL</span>
+                                  <span className="text-xl md:text-2xl font-black bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                                     R$ {getPaymentBreakdown.total.toFixed(2)}
                                   </span>
                                 </div>
@@ -1176,10 +1296,13 @@ export default function ContractForm() {
                     transition={{ delay: 0.2 }}
                     className="space-y-6"
                   >
-                    <h3 className="text-lg md:text-xl font-bold flex items-center gap-2 text-gray-900">
-                      <Shield className="w-5 h-5 md:w-6 md:h-6 text-indigo-600" />
-                      Escolha seu Plano de Manutenção
-                    </h3>
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg md:text-xl font-bold flex items-center gap-2 text-gray-900">
+                        <Shield className="w-5 h-5 md:w-6 md:h-6 text-indigo-600" />
+                        Planos de Manutenção
+                      </h3>
+                      <Badge className="bg-orange-500 text-white font-bold">Até 50% OFF</Badge>
+                    </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
                       {MAINTENANCE_PLANS.map((plan, index) => (
@@ -1227,10 +1350,18 @@ export default function ContractForm() {
                               </div>
                               <CardTitle className="text-lg md:text-xl font-bold">{plan.name}</CardTitle>
                               <div className="mt-2">
-                                <span className="text-2xl md:text-3xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                                  R$ {plan.price}
-                                </span>
-                                <span className="text-gray-500 text-sm font-medium">/mês</span>
+                                <div className="text-xs line-through text-gray-400">
+                                  R$ {plan.originalPrice}/mês
+                                </div>
+                                <div>
+                                  <span className="text-2xl md:text-3xl font-black bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                                    R$ {plan.price}
+                                  </span>
+                                  <span className="text-gray-500 text-sm font-medium">/mês</span>
+                                </div>
+                                <Badge className="mt-1 bg-green-100 text-green-700 text-xs">
+                                  Economize R$ {plan.originalPrice - plan.price}
+                                </Badge>
                               </div>
                             </CardHeader>
                             <CardContent>
@@ -1249,7 +1380,7 @@ export default function ContractForm() {
                     </div>
 
                     <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl p-4 md:p-6 border border-gray-200">
-                      <Label htmlFor="siteLink" className="text-sm md:text-base font-semibold">Link do seu site atual (opcional)</Label>
+                      <Label htmlFor="siteLink" className="text-sm md:text-base font-semibold">Link do seu site (opcional)</Label>
                       <Input
                         id="siteLink"
                         name="siteLink"
@@ -1270,7 +1401,7 @@ export default function ContractForm() {
                   className="space-y-2"
                 >
                   <Label htmlFor="description" className="text-sm md:text-base font-semibold">
-                    Descreva seu projeto ou necessidade
+                    Conte mais sobre seu projeto
                   </Label>
                   <Textarea
                     id="description"
@@ -1280,17 +1411,42 @@ export default function ContractForm() {
                     className="min-h-[120px] md:min-h-[140px] resize-none text-base border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
                     placeholder={
                       formData.serviceType === "project"
-                        ? "Descreva os objetivos, funcionalidades desejadas e referências..."
-                        : "Descreva seu site/sistema atual e suas necessidades de manutenção..."
+                        ? "Descreva: objetivos, funcionalidades, cores preferidas, exemplos de sites que gosta..."
+                        : "Conte sobre seu site atual e o que precisa de manutenção..."
                     }
                   />
+                </motion.div>
+
+                {/* Garantias */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-4 md:p-6 border-2 border-green-200"
+                >
+                  <h4 className="font-bold text-lg mb-4 flex items-center gap-2">
+                    <Award className="w-5 h-5 text-green-600" />
+                    O Que Está Incluso
+                  </h4>
+                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {[
+                      "✅ 30 dias de suporte grátis",
+                      "✅ 3 rodadas de ajustes",
+                      "✅ Código limpo e documentado",
+                      "✅ Design responsivo mobile",
+                      "✅ SSL e segurança",
+                      "✅ Hospedagem configurada",
+                    ].map((item, i) => (
+                      <li key={i} className="text-sm text-gray-700 font-medium">{item}</li>
+                    ))}
+                  </ul>
                 </motion.div>
               </CardContent>
 
               <CardFooter className="bg-gray-50 p-4 md:p-6 flex-col sm:flex-row gap-3">
                 <div className="w-full flex flex-col sm:flex-row justify-end items-center gap-3">
                   <span className="text-sm text-gray-500 font-medium order-2 sm:order-1">
-                    Etapa 1 de 3
+                    Passo 1 de 3
                   </span>
                   <Button
                     onClick={nextStep}
@@ -1333,7 +1489,7 @@ export default function ContractForm() {
                       Termos do Contrato
                     </CardTitle>
                     <CardDescription className="text-purple-100 text-sm md:text-base mt-1">
-                      Revise e aceite os termos para prosseguir
+                      Leia com atenção antes de aceitar
                     </CardDescription>
                   </div>
                 </div>
@@ -1367,23 +1523,23 @@ export default function ContractForm() {
                         <>
                           Desenvolvimento de{" "}
                           {formData.projectType === "website"
-                            ? "website institucional"
-                            : "sistema personalizado"}{" "}
-                          conforme especificações acordadas, com valor total de{" "}
-                          <strong className="text-green-600">R$ {getPaymentBreakdown.total.toFixed(2)}</strong>.
+                            ? "website/portal web"
+                            : "sistema/aplicativo"}{" "}
+                          conforme especificações, com valor de{" "}
+                          <strong className="text-green-600">R$ {getPaymentBreakdown.total.toFixed(2)}</strong>
+                          {getPaymentBreakdown.discount > 0 && (
+                            <> (desconto de R$ {getPaymentBreakdown.discount.toFixed(2)} à vista aplicado)</>
+                          )}.
                         </>
                       ) : (
                         <>
-                          Prestação de serviços de manutenção e suporte no Plano{" "}
+                          Manutenção mensal no Plano{" "}
                           <strong className="text-indigo-600">
                             {MAINTENANCE_PLANS.find((p) => p.id === formData.maintenancePlan)?.name}
                           </strong>
-                          , com mensalidade de{" "}
+                          , por{" "}
                           <strong className="text-green-600">
-                            R${" "}
-                            {MAINTENANCE_PLANS.find(
-                              (p) => p.id === formData.maintenancePlan
-                            )?.price.toFixed(2)}
+                            R$ {MAINTENANCE_PLANS.find((p) => p.id === formData.maintenancePlan)?.price}/mês
                           </strong>
                           .
                         </>
@@ -1394,68 +1550,104 @@ export default function ContractForm() {
                     <p className="text-sm md:text-base">
                       {formData.serviceType === "project" ? (
                         <>
-                          O pagamento será realizado em{" "}
-                          {formData.paymentStructure === "40-30-30" ? "3 parcelas" : "2 parcelas"}:
+                          Pagamento:
                           <ul className="mt-2 space-y-1">
-                            <li>
-                              <strong>Entrada:</strong> R$ {getPaymentBreakdown.entrada.toFixed(2)}{" "}
-                              ({formData.paymentStructure === "40-30-30" ? "40%" : "50%"})
-                            </li>
-                            {formData.paymentStructure === "40-30-30" ? (
+                            {formData.paymentStructure === "full" ? (
+                              <li>
+                                <strong>À Vista ({PAYMENT_DISCOUNT}% OFF):</strong> R$ {getPaymentBreakdown.entrada.toFixed(2)}
+                              </li>
+                            ) : (
                               <>
                                 <li>
-                                  <strong>Aprovação do Design:</strong> R${" "}
-                                  {getPaymentBreakdown.segunda.toFixed(2)} (30%)
+                                  <strong>1ª Parcela:</strong> R$ {getPaymentBreakdown.entrada.toFixed(2)}{" "}
+                                  ({formData.paymentStructure === "40-30-30" ? "40%" : "50%"})
                                 </li>
-                                <li>
-                                  <strong>Entrega Final:</strong> R${" "}
-                                  {getPaymentBreakdown.terceira.toFixed(2)} (30%)
-                                </li>
+                                {formData.paymentStructure === "40-30-30" ? (
+                                  <>
+                                    <li>
+                                      <strong>2ª Parcela:</strong> R$ {getPaymentBreakdown.segunda.toFixed(2)} (30%)
+                                    </li>
+                                    <li>
+                                      <strong>3ª Parcela:</strong> R$ {getPaymentBreakdown.terceira.toFixed(2)} (30%)
+                                    </li>
+                                  </>
+                                ) : (
+                                  <li>
+                                    <strong>2ª Parcela:</strong> R$ {getPaymentBreakdown.segunda.toFixed(2)} (50%)
+                                  </li>
+                                )}
                               </>
-                            ) : (
-                              <li>
-                                <strong>Entrega Final:</strong> R${" "}
-                                {getPaymentBreakdown.segunda.toFixed(2)} (50%)
-                              </li>
                             )}
                           </ul>
                         </>
                       ) : (
                         <>
-                          Pagamento mensal de{" "}
+                          Mensalidade de{" "}
                           <strong className="text-green-600">
-                            R${" "}
-                            {MAINTENANCE_PLANS.find(
-                              (p) => p.id === formData.maintenancePlan
-                            )?.price.toFixed(2)}
+                            R$ {MAINTENANCE_PLANS.find((p) => p.id === formData.maintenancePlan)?.price}
                           </strong>{" "}
-                          com vencimento todo dia 10.
+                          vencendo todo dia 10. <strong>Atraso de 15 dias = site suspenso automaticamente.</strong>
                         </>
                       )}
                     </p>
 
-                    <h4 className="font-black mt-4 text-gray-900">3. PRAZO DE ENTREGA</h4>
+                    <h4 className="font-black mt-4 text-gray-900">3. PRAZO</h4>
                     <p className="text-sm md:text-base">
                       {formData.serviceType === "project"
-                        ? `O prazo estimado para conclusão é de ${TIMELINE_OPTIONS.find(t => t.value === formData.timeline)?.label || "a definir"}.`
-                        : "Serviço contínuo com renovação mensal automática."}
+                        ? `Prazo estimado: ${TIMELINE_OPTIONS.find(t => t.value === formData.timeline)?.label || "a combinar"}.`
+                        : "Serviço contínuo até cancelamento."}
                     </p>
 
-                    <h4 className="font-black mt-4 text-gray-900">4. DIREITOS E OBRIGAÇÕES</h4>
+                    <h4 className="font-black mt-4 text-gray-900">4. OBRIGAÇÕES</h4>
                     <ul className="space-y-1 text-sm md:text-base">
-                      <li>
-                        A CONTRATADA se compromete a entregar o serviço conforme especificado
-                      </li>
-                      <li>O CONTRATANTE deve fornecer informações necessárias para execução</li>
-                      <li>Atrasos no pagamento podem suspender os serviços</li>
+                      <li>• CONTRATADA entrega conforme acordado</li>
+                      <li>• CONTRATANTE fornece informações necessárias</li>
+                      <li>• Atrasos no pagamento suspendem serviços</li>
+                      {formData.serviceType === "project" && (
+                        <li>• Incluído: 3 revisões + 30 dias suporte grátis</li>
+                      )}
                     </ul>
 
-                    <h4 className="font-black mt-4 text-gray-900">5. POLÍTICA DE CANCELAMENTO</h4>
+                    <h4 className="font-black mt-4 text-gray-900 flex items-center gap-2">
+                      <AlertTriangle className="w-5 h-5 text-red-600" />
+                      5. SUSPENSÃO POR FALTA DE PAGAMENTO
+                    </h4>
+                    <div className="bg-red-50 border-2 border-red-300 rounded-lg p-4 my-3">
+                      <p className="text-sm md:text-base font-bold text-red-900">
+                        ATENÇÃO - CLÁUSULA IMPORTANTE:
+                      </p>
+                      <ul className="space-y-1 text-sm md:text-base text-red-800 mt-2">
+                        <li>• <strong>Projetos:</strong> Não pagou parcela = desenvolvimento SUSPENSO até quitação.</li>
+                        <li>• <strong>Manutenção:</strong> 15 dias de atraso = site/sistema SAI DO AR automaticamente.</li>
+                        <li>• Multa: 2% ao mês + juros 1% a.m.</li>
+                        <li>• Após 60 dias: possível exclusão permanente de arquivos.</li>
+                      </ul>
+                    </div>
+
+                    <h4 className="font-black mt-4 text-gray-900">6. CANCELAMENTO</h4>
                     <p className="text-sm md:text-base">
                       {formData.serviceType === "project"
-                        ? "Em caso de cancelamento, valores já pagos não serão reembolsados."
-                        : "O cancelamento deve ser solicitado com 30 dias de antecedência."}
+                        ? "Cancelamento: valores pagos NÃO são reembolsados."
+                        : "Deve avisar com 30 dias de antecedência."}
                     </p>
+
+                    <h4 className="font-black mt-4 text-gray-900">7. GARANTIAS</h4>
+                    <ul className="space-y-1 text-sm md:text-base">
+                      <li>• 30 dias para correção de bugs</li>
+                      <li>• SSL incluso</li>
+                      <li>• Backup conforme plano</li>
+                    </ul>
+
+                    <h4 className="font-black mt-4 text-gray-900">8. PROPRIEDADE</h4>
+                    <p className="text-sm md:text-base">
+                      Após quitação TOTAL, código-fonte é seu. Frameworks mantêm licenças originais.
+                    </p>
+
+                    <div className="mt-6 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg">
+                      <p className="text-sm font-bold text-blue-900">
+                        ✓ Ao aceitar, você confirma que leu e concorda com TODOS os termos acima.
+                      </p>
+                    </div>
                   </div>
                 </motion.div>
 
@@ -1474,10 +1666,10 @@ export default function ContractForm() {
                     />
                     <label htmlFor="terms" className="cursor-pointer flex-1">
                       <div className="font-bold text-base md:text-lg text-gray-900">
-                        Li e aceito os termos do contrato
+                        ✓ Li e aceito todos os termos
                       </div>
                       <div className="text-sm text-gray-600 mt-1">
-                        Ao aceitar, você concorda com todos os termos e condições descritos acima.
+                        Estou ciente das condições de pagamento, prazos e suspensão por inadimplência.
                       </div>
                     </label>
                   </div>
@@ -1496,14 +1688,14 @@ export default function ContractForm() {
                     Voltar
                   </Button>
                   <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto order-1 sm:order-2">
-                    <span className="text-sm text-gray-500 font-medium">Etapa 2 de 3</span>
+                    <span className="text-sm text-gray-500 font-medium">Passo 2 de 3</span>
                     <Button
                       onClick={handleSignContract}
                       disabled={!formData.termsAccepted}
                       size="lg"
                       className="w-full sm:w-auto bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 text-white shadow-xl shadow-indigo-500/50 h-12 md:h-14 px-8 font-bold text-base"
                     >
-                      Assinar Contrato
+                      Assinar e Continuar
                       <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>
                   </div>
@@ -1515,8 +1707,8 @@ export default function ContractForm() {
           {/* Step 3: Payment */}
           {step === 3 && (
             <Card className="border-0 shadow-2xl overflow-hidden bg-white/80 backdrop-blur-sm">
-              <CardHeader className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white p-6 md:p-8">
-                <div className="flex items-center justify-between gap-4">
+              <CardHeader className="bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 text-white p-6 md:p-8">
+                <div className="flex items-center justify-between gap-4 flex-wrap">
                   <div className="flex items-center gap-4">
                     <motion.div
                       initial={{ rotate: -180, scale: 0 }}
@@ -1528,26 +1720,26 @@ export default function ContractForm() {
                     </motion.div>
                     <div>
                       <CardTitle className="text-2xl md:text-4xl font-black">
-                        Finalizar Pagamento
+                        Último Passo!
                       </CardTitle>
-                      <CardDescription className="text-purple-100 text-sm md:text-base mt-1">
-                        Escolha a forma de pagamento para começarmos seu projeto
+                      <CardDescription className="text-emerald-100 text-sm md:text-base mt-1">
+                        Efetue o pagamento para começarmos
                       </CardDescription>
                     </div>
                   </div>
-                  {/* NOVO: Badge do contador de urgência */}
-                  {timeLeft > 0 ? (
-                     <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }}>
+                  {timeLeft > 0 && (
+                     <motion.div
+                       initial={{ scale: 0.8 }}
+                       animate={{ scale: 1 }}
+                       className="w-full sm:w-auto"
+                     >
                         <Badge
-                        variant="destructive"
-                        className="text-base md:text-lg px-4 py-2 bg-gradient-to-r from-red-500 to-orange-500 border-0 shadow-lg"
+                        className="text-sm md:text-base px-4 py-2 bg-white text-orange-600 border-0 shadow-lg w-full sm:w-auto justify-center font-bold"
                         >
-                        <Clock className="w-5 h-5 mr-2 animate-pulse" />
-                        Expira em: {formatTime(timeLeft)}
+                        <Clock className="w-4 h-4 mr-2" />
+                        Oferta: {formatTime(timeLeft)}
                         </Badge>
                      </motion.div>
-                  ) : (
-                    <Badge variant="secondary" className="text-base">Oferta Expirada</Badge>
                   )}
                 </div>
               </CardHeader>
@@ -1557,101 +1749,66 @@ export default function ContractForm() {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-4 md:p-6 border-2 border-green-200 shadow-lg"
+                  className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-4 md:p-6 border-2 border-green-300 shadow-lg"
                 >
                   <h3 className="text-lg md:text-xl font-black mb-4 flex items-center gap-2 text-gray-900">
                     <DollarSign className="w-5 h-5 md:w-6 md:h-6 text-green-600" />
-                    Resumo do Pagamento
+                    Valor a Pagar Agora
                   </h3>
 
                   {formData.serviceType === "project" ? (
                     <div className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-                        <Card className="border-2 border-green-400 bg-white shadow-xl">
-                          <CardHeader className="pb-3">
-                            <Badge className="w-fit bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-lg">
-                              <Zap className="w-3 h-3 mr-1" />
-                              Hoje
-                            </Badge>
-                            <CardTitle className="text-base md:text-lg mt-2 font-bold">1ª Parcela</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <p className="text-2xl md:text-3xl font-black bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                              R$ {getPaymentBreakdown.entrada.toFixed(2)}
-                            </p>
-                            <p className="text-xs md:text-sm text-gray-500 mt-1 font-semibold">
-                              {formData.paymentStructure === "40-30-30" ? "40%" : "50%"} do total
-                            </p>
-                          </CardContent>
-                        </Card>
+                      <Card className="border-2 border-green-500 bg-white shadow-xl">
+                        <CardHeader className="pb-3">
+                          <Badge className="w-fit bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-lg">
+                            <Zap className="w-3 h-3 mr-1" />
+                            {formData.paymentStructure === "full" ? "Pagamento Único" : "1ª Parcela"}
+                          </Badge>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-4xl md:text-5xl font-black bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                            R$ {getPaymentBreakdown.entrada.toFixed(2)}
+                          </p>
+                          {getPaymentBreakdown.discount > 0 && (
+                            <div className="mt-2">
+                              <span className="text-sm line-through text-gray-400">
+                                R$ {getPaymentBreakdown.originalTotal.toFixed(2)}
+                              </span>
+                              <Badge className="ml-2 bg-green-500 text-white">
+                                Economize R$ {getPaymentBreakdown.discount.toFixed(2)}
+                              </Badge>
+                            </div>
+                          )}
+                          <p className="text-sm text-gray-600 mt-2 font-semibold">
+                            {formData.paymentStructure === "full"
+                              ? "Pagamento único com desconto!"
+                              : `Demais parcelas cobradas no andamento`}
+                          </p>
+                        </CardContent>
+                      </Card>
 
-                        {formData.paymentStructure === "40-30-30" ? (
-                          <>
-                            <Card className="border-2 border-gray-200 bg-white/60 opacity-70">
-                              <CardHeader className="pb-3">
-                                <Badge variant="outline" className="w-fit">Futuro</Badge>
-                                <CardTitle className="text-base md:text-lg mt-2 font-bold">2ª Parcela</CardTitle>
-                              </CardHeader>
-                              <CardContent>
-                                <p className="text-2xl md:text-3xl font-bold text-gray-400">
-                                  R$ {getPaymentBreakdown.segunda.toFixed(2)}
-                                </p>
-                                <p className="text-xs md:text-sm text-gray-400 mt-1">Na aprovação</p>
-                              </CardContent>
-                            </Card>
-                            <Card className="border-2 border-gray-200 bg-white/60 opacity-70">
-                              <CardHeader className="pb-3">
-                                <Badge variant="outline" className="w-fit">Futuro</Badge>
-                                <CardTitle className="text-base md:text-lg mt-2 font-bold">3ª Parcela</CardTitle>
-                              </CardHeader>
-                              <CardContent>
-                                <p className="text-2xl md:text-3xl font-bold text-gray-400">
-                                  R$ {getPaymentBreakdown.terceira.toFixed(2)}
-                                </p>
-                                <p className="text-xs md:text-sm text-gray-400 mt-1">Na entrega</p>
-                              </CardContent>
-                            </Card>
-                          </>
-                        ) : (
-                          <Card className="border-2 border-gray-200 bg-white/60 opacity-70 md:col-span-2">
-                            <CardHeader className="pb-3">
-                              <Badge variant="outline" className="w-fit">Futuro</Badge>
-                              <CardTitle className="text-base md:text-lg mt-2 font-bold">2ª Parcela</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                              <p className="text-2xl md:text-3xl font-bold text-gray-400">
-                                R$ {getPaymentBreakdown.segunda.toFixed(2)}
-                              </p>
-                              <p className="text-xs md:text-sm text-gray-400 mt-1">Na entrega final</p>
-                            </CardContent>
-                          </Card>
-                        )}
-                      </div>
-
-                      <Alert className="border-blue-300 bg-blue-50 shadow-lg">
+                      <Alert className="border-blue-300 bg-blue-50">
                         <Info className="h-5 w-5 text-blue-600" />
-                        <AlertTitle className="font-bold text-blue-900">Informação Importante</AlertTitle>
-                        <AlertDescription className="text-blue-800">
-                          Você está pagando apenas a primeira parcela agora. As demais parcelas
-                          serão cobradas conforme o andamento do projeto.
+                        <AlertDescription className="text-blue-800 font-medium">
+                          {formData.paymentStructure === "full"
+                            ? "Projeto inicia imediatamente após confirmação do pagamento!"
+                            : "Você paga apenas esta parcela agora. Restante conforme andamento do projeto."}
                         </AlertDescription>
                       </Alert>
                     </div>
                   ) : (
-                    <Card className="border-2 border-green-400 bg-white shadow-xl">
-                      <CardHeader>
-                        <CardTitle className="text-lg md:text-xl font-bold">
-                          Plano {MAINTENANCE_PLANS.find((p) => p.id === formData.maintenancePlan)?.name}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-3xl md:text-4xl font-black bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                    <Card className="border-2 border-green-500 bg-white shadow-xl">
+                      <CardContent className="pt-6">
+                        <div className="text-sm line-through text-gray-400">
+                          De: R$ {MAINTENANCE_PLANS.find((p) => p.id === formData.maintenancePlan)?.originalPrice}/mês
+                        </div>
+                        <p className="text-4xl md:text-5xl font-black bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                           R$ {getPaymentBreakdown.total.toFixed(2)}
-                          <span className="text-base font-normal text-gray-500">/mês</span>
+                          <span className="text-lg font-normal text-gray-500">/mês</span>
                         </p>
-                        <p className="text-sm text-gray-600 mt-2 font-semibold">
-                          Renovação automática mensal
-                        </p>
+                        <Badge className="mt-2 bg-green-500 text-white font-bold">
+                          Economize R$ {(MAINTENANCE_PLANS.find((p) => p.id === formData.maintenancePlan)?.originalPrice || 0) - getPaymentBreakdown.total}/mês
+                        </Badge>
                       </CardContent>
                     </Card>
                   )}
@@ -1664,14 +1821,14 @@ export default function ContractForm() {
                   transition={{ delay: 0.1 }}
                   className="space-y-4"
                 >
-                  <h3 className="text-lg md:text-xl font-black text-gray-900">Forma de Pagamento</h3>
+                  <h3 className="text-lg md:text-xl font-black text-gray-900">Como Quer Pagar?</h3>
                   <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
                     <div className="grid grid-cols-1 gap-3 md:gap-4">
                       {[
                         {
                           value: "pix",
                           label: "PIX",
-                          description: "Pagamento instantâneo com QR Code",
+                          description: "Aprovação na hora - Recomendado!",
                           icon: <Zap className="w-5 h-5" />,
                           recommended: true,
                           gradient: "from-green-500 to-emerald-500"
@@ -1679,16 +1836,14 @@ export default function ContractForm() {
                         {
                           value: "credit-card",
                           label: "Cartão de Crédito",
-                          description: formData.serviceType === "project"
-                            ? "Parcele em até 3x sem juros"
-                            : "Cobrança recorrente automática",
+                          description: formData.serviceType === "project" ? "Parcele em até 3x" : "Débito automático mensal",
                           icon: <CreditCard className="w-5 h-5" />,
                           gradient: "from-blue-500 to-cyan-500"
                         },
                         {
                           value: "boleto",
-                          label: "Boleto Bancário",
-                          description: "Vencimento em 3 dias úteis",
+                          label: "Boleto",
+                          description: "Vence em 3 dias",
                           icon: <FileText className="w-5 h-5" />,
                           gradient: "from-orange-500 to-red-500"
                         },
@@ -1703,10 +1858,10 @@ export default function ContractForm() {
                             htmlFor={method.value}
                             className={cn(
                               "flex items-center gap-4 rounded-2xl border-2 p-4 md:p-5 cursor-pointer transition-all bg-white",
-                              "hover:border-indigo-300 hover:shadow-xl hover:scale-[1.01]",
-                              "peer-data-[state=checked]:border-indigo-600",
-                              "peer-data-[state=checked]:bg-gradient-to-br peer-data-[state=checked]:from-indigo-50 peer-data-[state=checked]:to-purple-50",
-                              "peer-data-[state=checked]:shadow-2xl peer-data-[state=checked]:shadow-indigo-500/30"
+                              "hover:border-green-400 hover:shadow-xl",
+                              "peer-data-[state=checked]:border-green-600",
+                              "peer-data-[state=checked]:bg-green-50",
+                              "peer-data-[state=checked]:shadow-2xl"
                             )}
                           >
                             <div className={cn(
@@ -1718,25 +1873,18 @@ export default function ContractForm() {
                               {method.icon}
                             </div>
                             <div className="flex-1">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className="font-bold text-base md:text-lg text-gray-900">{method.label}</span>
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-lg text-gray-900">{method.label}</span>
                                 {method.recommended && (
-                                  <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-lg text-xs">
-                                    <Star className="w-3 h-3 mr-1" />
-                                    Recomendado
+                                  <Badge className="bg-green-500 text-white text-xs">
+                                    Mais Rápido
                                   </Badge>
                                 )}
                               </div>
                               <p className="text-sm text-gray-600 mt-1">{method.description}</p>
                             </div>
                             {paymentMethod === method.value && (
-                              <motion.div
-                                initial={{ scale: 0, rotate: -180 }}
-                                animate={{ scale: 1, rotate: 0 }}
-                                transition={{ type: "spring", stiffness: 500 }}
-                              >
-                                <CheckCircle className="w-6 h-6 text-indigo-600" />
-                              </motion.div>
+                              <CheckCircle className="w-6 h-6 text-green-600" />
                             )}
                           </Label>
                         </div>
@@ -1749,180 +1897,120 @@ export default function ContractForm() {
                 <AnimatePresence>
                   {paymentMethod && (
                     <motion.div
-                      initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                      className="bg-gradient-to-br from-gray-50 to-white rounded-2xl p-4 md:p-6 border-2 border-gray-200 shadow-lg"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      className="bg-white rounded-2xl p-4 md:p-6 border-2 border-gray-200 shadow-lg"
                     >
                       {paymentMethod === "pix" && (
-                        <div className="space-y-4">
-                          <h4 className="font-bold text-lg md:text-xl flex items-center gap-2 text-gray-900">
-                            <Zap className="w-5 h-5 md:w-6 md:h-6 text-green-600" />
-                            Pagamento via PIX
-                          </h4>
-                          <PixQRCode
-                            paymentId={formData.paymentId}
-                            amount={getPaymentBreakdown.entrada}
-                          />
-                        </div>
+                        <PixQRCode
+                          paymentId={formData.paymentId}
+                          amount={getPaymentBreakdown.entrada}
+                        />
                       )}
 
                       {paymentMethod === "credit-card" && (
                         <div className="space-y-4">
-                          <h4 className="font-bold text-lg md:text-xl flex items-center gap-2 text-gray-900">
-                            <CreditCard className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />
+                          <h4 className="font-bold text-lg flex items-center gap-2">
+                            <CreditCard className="w-5 h-5 text-blue-600" />
                             Dados do Cartão
                           </h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="md:col-span-2">
-                              <Label htmlFor="card-number" className="font-semibold">Número do Cartão</Label>
-                              <Input
-                                id="card-number"
-                                placeholder="1234 5678 9012 3456"
-                                className="h-11 md:h-12 text-base mt-2 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                              />
+                              <Label>Número do Cartão</Label>
+                              <Input placeholder="1234 5678 9012 3456" className="h-12 text-base mt-2" />
                             </div>
                             <div className="md:col-span-2">
-                              <Label htmlFor="card-name" className="font-semibold">Nome no Cartão</Label>
-                              <Input
-                                id="card-name"
-                                placeholder="NOME COMPLETO"
-                                className="h-11 md:h-12 text-base mt-2 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                              />
+                              <Label>Nome no Cartão</Label>
+                              <Input placeholder="COMO ESTÁ NO CARTÃO" className="h-12 text-base mt-2" />
                             </div>
                             <div>
-                              <Label htmlFor="expiry" className="font-semibold">Validade</Label>
-                              <Input
-                                id="expiry"
-                                placeholder="MM/AA"
-                                className="h-11 md:h-12 text-base mt-2 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                              />
+                              <Label>Validade</Label>
+                              <Input placeholder="MM/AA" className="h-12 text-base mt-2" />
                             </div>
                             <div>
-                              <Label htmlFor="cvv" className="font-semibold">CVV</Label>
-                              <Input
-                                id="cvv"
-                                placeholder="123"
-                                className="h-11 md:h-12 text-base mt-2 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                              />
+                              <Label>CVV</Label>
+                              <Input placeholder="123" maxLength={4} className="h-12 text-base mt-2" />
                             </div>
-                            {formData.serviceType === "project" && (
-                              <div className="md:col-span-2">
-                                <Label htmlFor="installments" className="font-semibold">Parcelamento</Label>
-                                <Select defaultValue="1">
-                                  <SelectTrigger className="h-11 md:h-12 mt-2 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="1">
-                                      À vista - R$ {getPaymentBreakdown.entrada.toFixed(2)}
-                                    </SelectItem>
-                                    <SelectItem value="2">
-                                      2x de R$ {(getPaymentBreakdown.entrada / 2).toFixed(2)}
-                                    </SelectItem>
-                                    <SelectItem value="3">
-                                      3x de R$ {(getPaymentBreakdown.entrada / 3).toFixed(2)}
-                                    </SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            )}
                           </div>
                         </div>
                       )}
 
                       {paymentMethod === "boleto" && (
-                        <div className="space-y-4">
-                          <h4 className="font-bold text-lg md:text-xl flex items-center gap-2 text-gray-900">
-                            <FileText className="w-5 h-5 md:w-6 md:h-6 text-orange-600" />
-                            Boleto Bancário
-                          </h4>
-                          <BoletoPayment
-                            paymentId={formData.paymentId}
-                            amount={getPaymentBreakdown.entrada}
-                          />
-                        </div>
+                        <BoletoPayment
+                          paymentId={formData.paymentId}
+                          amount={getPaymentBreakdown.entrada}
+                        />
                       )}
                     </motion.div>
                   )}
                 </AnimatePresence>
               </CardContent>
 
-              <CardFooter className="bg-gray-50 p-4 md:p-6 flex-col sm:flex-row gap-3">
-                <div className="w-full flex flex-col sm:flex-row justify-between items-center gap-3">
+              <CardFooter className="bg-gray-50 p-4 md:p-6">
+                <div className="w-full flex flex-col sm:flex-row justify-between gap-3">
                   <Button
                     variant="outline"
                     onClick={prevStep}
                     disabled={paymentProcessing}
                     size="lg"
-                    className="w-full sm:w-auto border-2 h-12 md:h-14 px-6 font-bold order-2 sm:order-1"
+                    className="w-full sm:w-auto h-14 px-6 font-bold"
                   >
                     <ArrowLeft className="mr-2 h-5 w-5" />
                     Voltar
                   </Button>
-                  <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto order-1 sm:order-2">
-                    <span className="text-sm text-gray-500 font-medium">Etapa 3 de 3</span>
-                    <Button
-                      onClick={handlePaymentSubmit}
-                      disabled={!isStep3Valid || paymentProcessing || timeLeft <= 0}
-                      size="lg"
-                      className="w-full sm:w-auto bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 hover:from-green-700 hover:via-emerald-700 hover:to-teal-700 text-white shadow-xl shadow-green-500/50 h-12 md:h-14 px-6 md:px-8 font-bold text-sm md:text-base"
-                    >
-                      {paymentProcessing ? (
-                        <>
-                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                          Processando...
-                        </>
-                      ) : (
-                        <>
-                          <Shield className="mr-2 h-5 w-5" />
-                          <span className="hidden sm:inline">Confirmar Pagamento</span>
-                          <span className="sm:hidden">Pagar</span>
-                          <span className="ml-1">R$ {getPaymentBreakdown.entrada.toFixed(2)}</span>
-                        </>
-                      )}
-                    </Button>
-                  </div>
+                  <Button
+                    onClick={handlePaymentSubmit}
+                    disabled={!isStep3Valid || paymentProcessing}
+                    size="lg"
+                    className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-2xl h-14 px-8 font-black text-lg"
+                  >
+                    {paymentProcessing ? (
+                      <>
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        Processando...
+                      </>
+                    ) : (
+                      <>
+                        <Shield className="mr-2 h-5 w-5" />
+                        PAGAR R$ {getPaymentBreakdown.entrada.toFixed(2)}
+                      </>
+                    )}
+                  </Button>
                 </div>
               </CardFooter>
             </Card>
           )}
         </motion.div>
 
-        {/* Trust Section - Footer */}
+        {/* Trust Footer */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="max-w-4xl mx-auto mt-8 md:mt-12"
+          className="max-w-4xl mx-auto mt-12"
         >
-          <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 md:p-6 border border-gray-200 shadow-lg">
-            <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 text-center md:text-left">
+          <div className="bg-white/60 backdrop-blur rounded-2xl p-6 border shadow-lg">
+            <div className="flex flex-wrap items-center justify-center gap-6 text-center">
               <div className="flex items-center gap-2">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <Shield className="w-5 h-5 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-gray-900">Pagamento Seguro</p>
-                  <p className="text-xs text-gray-600">Criptografia SSL</p>
+                <Shield className="w-5 h-5 text-green-600" />
+                <div className="text-left">
+                  <p className="text-xs font-bold">Pagamento Seguro</p>
+                  <p className="text-xs text-gray-600">SSL 256 bits</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Lock className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-gray-900">Dados Protegidos</p>
-                  <p className="text-xs text-gray-600">LGPD Compliance</p>
+                <Lock className="w-5 h-5 text-blue-600" />
+                <div className="text-left">
+                  <p className="text-xs font-bold">LGPD</p>
+                  <p className="text-xs text-gray-600">Dados Protegidos</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <div className="p-2 bg-purple-100 rounded-lg">
-                  <Award className="w-5 h-5 text-purple-600" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-gray-900">Garantia Total</p>
-                  <p className="text-xs text-gray-600">Satisfação 100%</p>
+                <Users className="w-5 h-5 text-purple-600" />
+                <div className="text-left">
+                  <p className="text-xs font-bold">Suporte Real</p>
+                  <p className="text-xs text-gray-600">Humanos, não bots</p>
                 </div>
               </div>
             </div>
@@ -1930,45 +2018,22 @@ export default function ContractForm() {
         </motion.div>
       </div>
 
-      {/* Custom CSS for animations */}
+      {/* CSS */}
       <style jsx>{`
         @keyframes blob {
-          0% {
-            transform: translate(0px, 0px) scale(1);
-          }
-          33% {
-            transform: translate(30px, -50px) scale(1.1);
-          }
-          66% {
-            transform: translate(-20px, 20px) scale(0.9);
-          }
-          100% {
-            transform: translate(0px, 0px) scale(1);
-          }
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(30px, -50px) scale(1.1); }
+          66% { transform: translate(-20px, 20px) scale(0.9); }
         }
-        .animate-blob {
-          animation: blob 7s infinite;
-        }
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
+        .animate-blob { animation: blob 7s infinite; }
+        .animation-delay-2000 { animation-delay: 2s; }
+        .animation-delay-4000 { animation-delay: 4s; }
         @keyframes shimmer {
-          0% {
-            transform: translateX(-100%);
-          }
-          100% {
-            transform: translateX(100%);
-          }
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
         }
-        .animate-shimmer {
-          animation: shimmer 2s infinite;
-        }
-        .scrollbar-thin::-webkit-scrollbar {
-          width: 6px;
-        }
+        .animate-shimmer { animation: shimmer 2s infinite; }
+        .scrollbar-thin::-webkit-scrollbar { width: 6px; }
         .scrollbar-thumb-indigo-500::-webkit-scrollbar-thumb {
           background-color: #6366f1;
           border-radius: 3px;

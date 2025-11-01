@@ -1,95 +1,356 @@
 "use client"
 
-import Link from "next/link"
-import { ArrowRight, CheckCircle } from "lucide-react"
+import React, { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import {
+  CheckCircle,
+  MessageCircle,
+  Mail,
+  Calendar,
+  Sparkles,
+  ArrowRight,
+  Clock,
+  Shield,
+  Zap,
+  Phone,
+  Download,
+  Star,
+} from "lucide-react"
+import Link from "next/link"
+import Confetti from 'react-confetti'
 
-export default function PagamentoSucessoPage() {
-  // Número do WhatsApp formatado para o link
+export default function PaymentSuccess() {
+  const [showConfetti, setShowConfetti] = useState(true)
+  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 })
+
   const whatsappNumber = "5579999383543"
-  const whatsappMessage = "Olá! Acabei de contratar um serviço no site e gostaria de mais informações."
-  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`
+  const whatsappMessage = "Olá! Acabei de finalizar o pagamento e gostaria de dar início ao meu projeto 🚀"
+  const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`
+
+  useEffect(() => {
+    setWindowSize({ width: window.innerWidth, height: window.innerHeight })
+
+    const timer = setTimeout(() => {
+      setShowConfetti(false)
+    }, 5000)
+
+    return () => clearTimeout(timer)
+  }, [])
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-50 px-4 py-12">
-      <motion.div
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="mb-8 flex h-24 w-24 items-center justify-center rounded-full bg-green-100"
-      >
-        <CheckCircle className="h-16 w-16 text-green-600" />
-      </motion.div>
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 relative overflow-hidden">
+      {/* Confetti */}
+      {showConfetti && (
+        <Confetti
+          width={windowSize.width}
+          height={windowSize.height}
+          recycle={false}
+          numberOfPieces={500}
+          gravity={0.3}
+        />
+      )}
 
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-        className="text-center"
-      >
-        <h1 className="mb-4 text-3xl font-bold text-gray-900 md:text-4xl">Pagamento Confirmado!</h1>
-        <p className="mb-8 text-lg text-gray-600">
-          Obrigado por confiar na Impulsioneweb. Seu projeto foi iniciado com sucesso.
-        </p>
+      {/* Background decorativo */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-green-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob"></div>
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-emerald-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob animation-delay-2000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-teal-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob animation-delay-4000"></div>
+      </div>
 
-        <div className="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-xl font-semibold text-gray-900">Próximos Passos</h2>
-          <ul className="space-y-3 text-left">
-            <li className="flex items-start">
-              <div className="mr-3 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-purple-100 text-purple-600">
-                1
-              </div>
-              <p>Nossa equipe entrará em contato em até 24 horas para agendar uma reunião inicial.</p>
-            </li>
-            <li className="flex items-start">
-              <div className="mr-3 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-purple-100 text-purple-600">
-                2
-              </div>
-              <p>Você receberá um email com o comprovante de pagamento e detalhes do contrato.</p>
-            </li>
-            <li className="flex items-start">
-              <div className="mr-3 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-purple-100 text-purple-600">
-                3
-              </div>
-              <p>Iniciaremos o planejamento do seu projeto conforme as especificações fornecidas.</p>
-            </li>
-          </ul>
-        </div>
+      <div className="container mx-auto px-4 py-12 md:py-20 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8, y: 50 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.5, type: "spring", stiffness: 200 }}
+          className="max-w-4xl mx-auto"
+        >
+          {/* Main Success Card */}
+          <Card className="border-0 shadow-2xl overflow-hidden bg-white/90 backdrop-blur-xl mb-8">
+            <CardHeader className="bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 text-white p-8 md:p-12 text-center relative overflow-hidden">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2, type: "spring", stiffness: 300 }}
+                className="mx-auto mb-6"
+              >
+                <div className="relative inline-block">
+                  <div className="absolute inset-0 bg-white rounded-full animate-ping opacity-30"></div>
+                  <div className="relative bg-white rounded-full p-6">
+                    <CheckCircle className="w-16 h-16 md:w-20 md:h-20 text-green-600" />
+                  </div>
+                </div>
+              </motion.div>
 
-        <div className="flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
-          <Link href="/">
-            <Button className="w-full bg-purple-600 hover:bg-purple-700 sm:w-auto">
-              Voltar para a Página Inicial <ArrowRight className="ml-2 h-4 w-4" />
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                <CardTitle className="text-3xl md:text-5xl font-black mb-4">
+                  🎉 Pagamento Confirmado!
+                </CardTitle>
+                <CardDescription className="text-emerald-100 text-lg md:text-xl font-medium">
+                  Seu projeto já está em nossas mãos. Vamos criar algo incrível juntos!
+                </CardDescription>
+              </motion.div>
+
+              {/* Decorative elements */}
+              <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-10">
+                <Sparkles className="absolute top-10 left-10 w-8 h-8 animate-pulse" />
+                <Star className="absolute top-20 right-20 w-6 h-6 animate-spin-slow" />
+                <Zap className="absolute bottom-10 left-1/4 w-10 h-10 animate-bounce" />
+              </div>
+            </CardHeader>
+
+            <CardContent className="p-8 md:p-12 space-y-8">
+              {/* WhatsApp CTA - DESTAQUE */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+                className="relative"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-400 rounded-2xl blur-xl opacity-30 animate-pulse"></div>
+                <Card className="border-4 border-green-500 bg-gradient-to-br from-green-50 to-emerald-50 shadow-2xl relative">
+                  <CardContent className="p-6 md:p-8">
+                    <div className="flex items-start gap-4 mb-6">
+                      <div className="p-3 bg-green-500 rounded-2xl shadow-lg">
+                        <MessageCircle className="w-8 h-8 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-2xl md:text-3xl font-black text-gray-900 mb-2">
+                          Próximo Passo: Entre em Contato!
+                        </h3>
+                        <p className="text-gray-700 text-base md:text-lg font-medium">
+                          Clique no botão abaixo para falar comigo no WhatsApp e alinharmos os detalhes do seu projeto agora mesmo.
+                        </p>
+                      </div>
+                    </div>
+
+                    <Button
+                      asChild
+                      size="lg"
+                      className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-2xl shadow-green-500/50 h-16 md:h-20 text-lg md:text-xl font-black group relative overflow-hidden"
+                    >
+                      <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                        <MessageCircle className="w-6 h-6 md:w-7 md:h-7 mr-3 animate-bounce" />
+                        <span>FALAR NO WHATSAPP AGORA</span>
+                        <ArrowRight className="w-6 h-6 md:w-7 md:h-7 ml-3 group-hover:translate-x-2 transition-transform" />
+                      </a>
+                    </Button>
+
+                    <div className="mt-4 flex items-center justify-center gap-2 text-sm text-gray-600">
+                      <Clock className="w-4 h-4" />
+                      <span className="font-semibold">Respondo em até 30 minutos!</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              {/* Próximos Passos */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8 }}
+                className="space-y-4"
+              >
+                <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                  <Calendar className="w-6 h-6 text-indigo-600" />
+                  O Que Acontece Agora?
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {[
+                    {
+                      step: "1",
+                      title: "Confirmação Imediata",
+                      description: "Você receberá um email com os detalhes do pagamento",
+                      icon: <Mail className="w-6 h-6" />,
+                      color: "from-blue-500 to-cyan-500"
+                    },
+                    {
+                      step: "2",
+                      title: "Conversa no WhatsApp",
+                      description: "Alinhamos briefing, referências e cronograma",
+                      icon: <MessageCircle className="w-6 h-6" />,
+                      color: "from-green-500 to-emerald-500"
+                    },
+                    {
+                      step: "3",
+                      title: "Início do Projeto",
+                      description: "Começamos o desenvolvimento em até 24h",
+                      icon: <Zap className="w-6 h-6" />,
+                      color: "from-purple-500 to-pink-500"
+                    }
+                  ].map((item, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.9 + i * 0.1 }}
+                    >
+                      <Card className="border-2 border-gray-200 hover:border-indigo-300 transition-all hover:shadow-lg h-full">
+                        <CardContent className="p-6">
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className={`p-3 rounded-xl bg-gradient-to-br ${item.color} text-white shadow-lg`}>
+                              {item.icon}
+                            </div>
+                            <Badge className="bg-indigo-600 text-white text-lg font-bold px-3 py-1">
+                              {item.step}
+                            </Badge>
+                          </div>
+                          <h4 className="font-bold text-lg text-gray-900 mb-2">{item.title}</h4>
+                          <p className="text-gray-600 text-sm">{item.description}</p>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+
+              {/* Informações Importantes */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.2 }}
+                className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 md:p-8 border-2 border-blue-200"
+              >
+                <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <Shield className="w-6 h-6 text-blue-600" />
+                  Informações Importantes
+                </h3>
+                <ul className="space-y-3">
+                  {[
+                    "✅ Comprovante de pagamento enviado para seu email",
+                    "✅ Projeto registrado em nosso sistema com prioridade",
+                    "✅ Você receberá atualizações regulares do andamento",
+                    "✅ Suporte disponível durante todo o desenvolvimento",
+                    "✅ 30 dias de garantia após a entrega",
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-start gap-3 text-gray-700 font-medium">
+                      <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+
+              {/* Contact Options */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.4 }}
+                className="grid grid-cols-1 md:grid-cols-2 gap-4"
+              >
+                <Card className="border-2 border-green-300 bg-green-50 hover:shadow-lg transition-all">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 bg-green-500 rounded-lg">
+                        <Phone className="w-5 h-5 text-white" />
+                      </div>
+                      <h4 className="font-bold text-lg">Preferência de Contato</h4>
+                    </div>
+                    <p className="text-gray-700 mb-4 text-sm">
+                      WhatsApp é a forma mais rápida de nos comunicarmos!
+                    </p>
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="w-full border-2 border-green-500 hover:bg-green-100"
+                    >
+                      <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
+                        <MessageCircle className="w-4 h-4 mr-2" />
+                        Abrir WhatsApp
+                      </a>
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-2 border-blue-300 bg-blue-50 hover:shadow-lg transition-all">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 bg-blue-500 rounded-lg">
+                        <Mail className="w-5 h-5 text-white" />
+                      </div>
+                      <h4 className="font-bold text-lg">Já Enviamos Email</h4>
+                    </div>
+                    <p className="text-gray-700 mb-4 text-sm">
+                      Verifique sua caixa de entrada (e spam) com todos os detalhes
+                    </p>
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="w-full border-2 border-blue-500 hover:bg-blue-100"
+                    >
+                      <a href="mailto:contato@impulsioneweb.com">
+                        <Mail className="w-4 h-4 mr-2" />
+                        Abrir Email
+                      </a>
+                    </Button>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              {/* Download Invoice */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.6 }}
+                className="text-center pt-6 border-t-2 border-gray-200"
+              >
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="border-2 border-gray-300 hover:border-indigo-500 hover:bg-indigo-50"
+                >
+                  <Download className="w-5 h-5 mr-2" />
+                  Baixar Comprovante (PDF)
+                </Button>
+              </motion.div>
+            </CardContent>
+          </Card>
+
+          {/* Back to Home */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.8 }}
+            className="text-center"
+          >
+            <Button
+              asChild
+              variant="ghost"
+              className="text-gray-600 hover:text-gray-900"
+            >
+              <Link href="/">
+                <ArrowRight className="w-4 h-4 mr-2 rotate-180" />
+                Voltar para o site
+              </Link>
             </Button>
-          </Link>
-          <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-            <Button variant="outline" className="w-full sm:w-auto flex items-center gap-2">
-              <svg width="20" height="20" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  fillRule="evenodd"
-                  clipRule="evenodd"
-                  d="M16 31C23.732 31 30 24.732 30 17C30 9.26801 23.732 3 16 3C8.26801 3 2 9.26801 2 17C2 19.5109 2.661 21.8674 3.81847 23.905L2 31L9.31486 29.3038C11.3014 30.3854 13.5789 31 16 31Z"
-                  fill="#25D366"
-                />
-                <path
-                  fillRule="evenodd"
-                  clipRule="evenodd"
-                  d="M16 28.8462C22.5425 28.8462 27.8462 23.5425 27.8462 17C27.8462 10.4576 22.5425 5.15385 16 5.15385C9.45755 5.15385 4.15385 10.4576 4.15385 17C4.15385 19.5261 4.9445 21.8675 6.29184 23.7902L5.23077 27.7692L9.27993 26.7569C11.1894 28.0746 13.5046 28.8462 16 28.8462Z"
-                  fill="white"
-                />
-                <path
-                  fillRule="evenodd"
-                  clipRule="evenodd"
-                  d="M12.7484 9.98718C12.4655 9.35359 12.1677 9.33654 11.8987 9.32156C11.6786 9.30873 11.4301 9.30989 11.1816 9.30989C10.9331 9.30989 10.5216 9.40205 10.1673 9.77564C9.81296 10.1492 8.92334 10.9815 8.92334 12.6748C8.92334 14.3681 10.1387 15.9899 10.3014 16.2384C10.4642 16.487 12.6714 20.1 16.2013 21.4849C19.1551 22.6247 19.7313 22.4338 20.3506 22.3701C20.9699 22.3063 22.3548 21.5376 22.6663 20.7689C22.9777 20.0002 22.9777 19.3666 22.8963 19.2315C22.8149 19.0964 22.5664 19.0185 22.1937 18.8627C21.8209 18.7069 20.1276 17.8746 19.7833 17.7674C19.4389 17.6602 19.1904 17.6066 18.9419 17.9802C18.6934 18.3538 18.0313 19.0964 17.8114 19.3449C17.5915 19.5935 17.3716 19.6203 16.9988 19.4645C16.6261 19.3087 15.5177 18.9547 14.1978 17.7674C13.1609 16.8398 12.4704 15.6919 12.2505 15.3183C12.0306 14.9447 12.2288 14.7413 12.4184 14.5539C12.5892 14.3851 12.7984 14.1155 12.9898 13.8956C13.1812 13.6757 13.2348 13.5199 13.342 13.2714C13.4492 13.0229 13.3956 12.803 13.3171 12.6472C13.2348 12.4914 12.5789 10.7871 12.2791 10.0414C12.0953 9.58462 11.8911 9.49744 11.6434 9.48205L12.7484 9.98718Z"
-                  fill="#25D366"
-                />
-              </svg>
-              Fale Conosco
-            </Button>
-          </a>
-        </div>
-      </motion.div>
+          </motion.div>
+        </motion.div>
+      </div>
+
+      {/* CSS Animations */}
+      <style jsx>{`
+        @keyframes blob {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(30px, -50px) scale(1.1); }
+          66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+        .animate-blob { animation: blob 7s infinite; }
+        .animation-delay-2000 { animation-delay: 2s; }
+        .animation-delay-4000 { animation-delay: 4s; }
+        @keyframes spin-slow {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .animate-spin-slow { animation: spin-slow 3s linear infinite; }
+      `}</style>
     </div>
   )
 }
