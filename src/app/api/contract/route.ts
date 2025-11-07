@@ -1,7 +1,6 @@
 // app/api/contract/route.ts
 import { NextResponse } from "next/server"
 
-// 🔥 INTERFACE ATUALIZADA - ADICIONAR CAMPOS FINANCEIROS
 interface ContractData {
   name: string;
   email: string;
@@ -14,20 +13,16 @@ interface ContractData {
   budget?: string;
   timeline?: string;
   description?: string;
-
-  // 🔥 NOVOS CAMPOS OBRIGATÓRIOS
-  totalAmount: number;      // Valor total do projeto
-  firstPayment: number;     // Valor da primeira parcela (ou pagamento único)
-  paymentStructure?: "full" | "50-50" | "40-30-30"; // Estrutura de pagamento
+  totalAmount: number;
+  firstPayment: number;
+  paymentStructure?: "full" | "50-50" | "40-30-30";
 }
 
-// Função para enviar dados do contrato por email
 async function sendContractEmail(data: ContractData) {
   console.log("Enviando dados do contrato por email:", data)
   return true
 }
 
-// Função para enviar dados para o Asaas
 async function sendToAsaas(data: ContractData) {
   try {
     const isPreview = !process.env.ASAAS_API_KEY || process.env.NODE_ENV === "development"
@@ -99,18 +94,14 @@ async function sendToAsaas(data: ContractData) {
 
     console.log("Cliente criado no Asaas:", customer)
 
-    // 🔥 CORREÇÃO PRINCIPAL - USAR VALORES DO FRONTEND
     let value: number;
 
     if (data.serviceType === "maintenance") {
-      // Para manutenção, usar o valor total (mensalidade)
       value = data.totalAmount;
     } else {
-      // Para projetos, usar o valor da PRIMEIRA PARCELA
       value = data.firstPayment;
     }
 
-    // 🔥 VALIDAÇÃO DE SEGURANÇA
     if (value < 50) {
       throw new Error("Valor mínimo de cobrança é R$ 50,00");
     }
@@ -119,7 +110,6 @@ async function sendToAsaas(data: ContractData) {
       throw new Error("Valor máximo de cobrança é R$ 50.000,00. Contate o suporte para valores maiores.");
     }
 
-    // 🔥 LOG PARA DEBUG
     console.log("=== VALOR ASAAS ===");
     console.log("Service Type:", data.serviceType);
     console.log("Total Amount:", data.totalAmount);
@@ -127,17 +117,16 @@ async function sendToAsaas(data: ContractData) {
     console.log("Valor enviado ao Asaas:", value);
     console.log("==================");
 
-    // Criar cobrança ou assinatura com base no tipo de serviço
     if (data.serviceType === "project") {
       console.log("Criando cobrança para projeto...")
 
       const paymentData = {
         customer: customer.id,
         billingType: "UNDEFINED",
-        value: value, // 🔥 AGORA USA O VALOR CORRETO
+        value: value,
         dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
         description: `Impulsioneweb - ${data.projectType || "Projeto"} - Parcela 1/${data.paymentStructure === "40-30-30" ? "3" : data.paymentStructure === "50-50" ? "2" : "1"}`,
-        externalReference: `project_${Date.now()}`, // Referência única
+        externalReference: `project_${Date.now()}`,
       }
 
       console.log("Dados da cobrança:", paymentData)
@@ -184,14 +173,14 @@ async function sendToAsaas(data: ContractData) {
         paymentId: paymentData2.id,
       }
     } else {
-      // Criar assinatura recorrente para manutenção
+      // 🔥 CORREÇÃO PRINCIPAL - ASSINATURA COM QR CODE PIX
       console.log("Criando assinatura para plano de manutenção...")
 
       const subscriptionData = {
         customer: customer.id,
-        billingType: "UNDEFINED",
-        value: value, // 🔥 AGORA USA O VALOR CORRETO
-        nextDueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+        billingType: "UNDEFINED", // Permite PIX, Cartão e Boleto
+        value: value,
+        nextDueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], // 3 dias
         cycle: "MONTHLY",
         description: `Impulsioneweb - Plano de Manutenção ${data.maintenancePlan || "Básico"}`,
       }
@@ -235,9 +224,45 @@ async function sendToAsaas(data: ContractData) {
 
       console.log("Assinatura criada no Asaas:", subscriptionData2)
 
+      // 🔥 CORREÇÃO: Buscar a primeira cobrança gerada pela assinatura
+      console.log("Buscando primeira cobrança da assinatura...")
+
+      const paymentsResponse = await fetch(
+        `https://www.asaas.com/api/v3/payments?subscription=${subscriptionData2.id}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            access_token: process.env.ASAAS_API_KEY || "",
+          },
+        }
+      )
+
+      if (!paymentsResponse.ok) {
+        console.error("Erro ao buscar cobranças da assinatura")
+        // Se falhar, retorna o ID da assinatura mesmo
+        return {
+          ...subscriptionData2,
+          paymentId: subscriptionData2.id,
+          subscriptionId: subscriptionData2.id,
+        }
+      }
+
+      const paymentsData = await paymentsResponse.json()
+      console.log("Cobranças da assinatura:", paymentsData)
+
+      // Pegar o ID da primeira cobrança
+      const firstPaymentId = paymentsData.data?.[0]?.id || subscriptionData2.id
+
+      console.log("=== ASSINATURA CRIADA ===")
+      console.log("Subscription ID:", subscriptionData2.id)
+      console.log("First Payment ID:", firstPaymentId)
+      console.log("========================")
+
       return {
         ...subscriptionData2,
-        paymentId: subscriptionData2.id,
+        paymentId: firstPaymentId, // 🔥 AGORA RETORNA O ID DA COBRANÇA, NÃO DA ASSINATURA
+        subscriptionId: subscriptionData2.id,
       }
     }
   } catch (error) {
@@ -246,13 +271,11 @@ async function sendToAsaas(data: ContractData) {
   }
 }
 
-// 🔥 FUNÇÃO MOCK ATUALIZADA
 function mockAsaasResponse(data: ContractData) {
   console.log("Simulando resposta do Asaas para os dados:", data)
 
   const mockId = `mock_${Math.random().toString(36).substring(2, 15)}`
 
-  // 🔥 USAR VALORES REAIS DO FRONTEND
   let value: number;
 
   if (data.serviceType === "maintenance") {
@@ -261,7 +284,6 @@ function mockAsaasResponse(data: ContractData) {
     value = data.firstPayment;
   }
 
-  // 🔥 LOG PARA DEBUG
   console.log("=== MOCK ASAAS ===");
   console.log("Service Type:", data.serviceType);
   console.log("Total Amount:", data.totalAmount);
@@ -276,7 +298,7 @@ function mockAsaasResponse(data: ContractData) {
           id: mockId,
           paymentId: mockId,
           customer: `customer_${mockId}`,
-          value: value, // 🔥 VALOR CORRETO
+          value: value,
           status: "PENDING",
           dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
           description: `Impulsioneweb - ${data.projectType || "Projeto"} - R$ ${value.toFixed(2)}`,
@@ -284,13 +306,18 @@ function mockAsaasResponse(data: ContractData) {
           bankSlipUrl: `https://www.asaas.com/b/${mockId}`,
         })
       } else {
+        // 🔥 MOCK CORRIGIDO PARA ASSINATURA
+        const subscriptionId = `sub_${mockId}`
+        const paymentId = `pay_${mockId}` // ID da primeira cobrança
+
         resolve({
-          id: mockId,
-          paymentId: mockId,
+          id: subscriptionId,
+          paymentId: paymentId, // 🔥 RETORNA ID DA COBRANÇA
+          subscriptionId: subscriptionId,
           customer: `customer_${mockId}`,
-          value: value, // 🔥 VALOR CORRETO
+          value: value,
           status: "ACTIVE",
-          nextDueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+          nextDueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
           cycle: "MONTHLY",
           description: `Impulsioneweb - Plano ${data.maintenancePlan || "Básico"} - R$ ${value.toFixed(2)}/mês`,
         })
@@ -303,7 +330,6 @@ export async function POST(request: Request) {
   try {
     const body = await request.json()
 
-    // 🔥 VALIDAÇÃO MELHORADA
     if (!body.name || !body.email) {
       return NextResponse.json(
         { success: false, message: "Nome e email são obrigatórios." },
@@ -311,7 +337,6 @@ export async function POST(request: Request) {
       )
     }
 
-    // 🔥 VALIDAÇÃO DE VALORES FINANCEIROS
     if (typeof body.totalAmount !== "number" || body.totalAmount <= 0) {
       return NextResponse.json(
         { success: false, message: "Valor total inválido." },
@@ -327,7 +352,6 @@ export async function POST(request: Request) {
         )
       }
 
-      // 🔥 VALIDAÇÃO DE SEGURANÇA - VALOR MÍNIMO
       if (body.totalAmount < 800) {
         return NextResponse.json(
           {
@@ -338,7 +362,6 @@ export async function POST(request: Request) {
         )
       }
 
-      // 🔥 VALIDAÇÃO DE SEGURANÇA - VALOR MÁXIMO
       if (body.totalAmount > 50000) {
         return NextResponse.json(
           {
@@ -350,7 +373,6 @@ export async function POST(request: Request) {
       }
     }
 
-    // 🔥 LOG COMPLETO PARA DEBUG
     console.log("=== DADOS RECEBIDOS ===");
     console.log("Nome:", body.name);
     console.log("Email:", body.email);
@@ -360,10 +382,8 @@ export async function POST(request: Request) {
     console.log("Payment Structure:", body.paymentStructure);
     console.log("=====================");
 
-    // Enviar por email (quando configurado)
     await sendContractEmail(body)
 
-    // Enviar para o Asaas
     let asaasResponse
     try {
       asaasResponse = await sendToAsaas(body)
@@ -378,11 +398,11 @@ export async function POST(request: Request) {
       )
     }
 
-    // 🔥 LOG FINAL
-    console.log("=== COBRANÇA CRIADA ===");
+    console.log("=== COBRANÇA/ASSINATURA CRIADA ===");
     console.log("Payment ID:", asaasResponse.paymentId);
+    console.log("Subscription ID:", asaasResponse.subscriptionId || "N/A");
     console.log("Valor cobrado:", asaasResponse.value);
-    console.log("=====================");
+    console.log("==================================");
 
     return NextResponse.json(
       {
