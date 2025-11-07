@@ -1,30 +1,35 @@
+// app/api/contract/route.ts
 import { NextResponse } from "next/server"
 
+// 🔥 INTERFACE ATUALIZADA - ADICIONAR CAMPOS FINANCEIROS
 interface ContractData {
   name: string;
   email: string;
-  phone?: string; // Optional field
-  cpf?: string; // Optional field
-  company?: string; // Optional field
-  serviceType: string; // e.g., "project" or "maintenance"
-  projectType?: string; // Optional for projects
-  maintenancePlan?: string; // Optional for maintenance
-  budget?: string; // Optional field
-  timeline?: string; // Optional field
-  description?: string; // Optional field
+  phone?: string;
+  cpf?: string;
+  company?: string;
+  serviceType: string;
+  projectType?: string;
+  maintenancePlan?: string;
+  budget?: string;
+  timeline?: string;
+  description?: string;
+
+  // 🔥 NOVOS CAMPOS OBRIGATÓRIOS
+  totalAmount: number;      // Valor total do projeto
+  firstPayment: number;     // Valor da primeira parcela (ou pagamento único)
+  paymentStructure?: "full" | "50-50" | "40-30-30"; // Estrutura de pagamento
 }
 
 // Função para enviar dados do contrato por email
 async function sendContractEmail(data: ContractData) {
-  // Implementação real será feita quando você configurar as variáveis de email
   console.log("Enviando dados do contrato por email:", data)
   return true
 }
 
-// Função para enviar dados para o Asaas (ou simular em ambiente de desenvolvimento)
+// Função para enviar dados para o Asaas
 async function sendToAsaas(data: ContractData) {
   try {
-    // Verificar se estamos em ambiente de desenvolvimento/preview
     const isPreview = !process.env.ASAAS_API_KEY || process.env.NODE_ENV === "development"
 
     if (isPreview) {
@@ -32,7 +37,6 @@ async function sendToAsaas(data: ContractData) {
       return mockAsaasResponse(data)
     }
 
-    // Código real para ambiente de produção
     console.log("Enviando dados do cliente para o Asaas...")
 
     const customerData = {
@@ -46,9 +50,13 @@ async function sendToAsaas(data: ContractData) {
         data.serviceType === "project"
           ? `Tipo de Projeto: ${data.projectType || ""}
            Orçamento: ${data.budget || ""}
+           Valor Total: R$ ${data.totalAmount.toFixed(2)}
+           Primeira Parcela: R$ ${data.firstPayment.toFixed(2)}
+           Estrutura: ${data.paymentStructure || ""}
            Prazo: ${data.timeline || ""}
            Descrição: ${data.description || ""}`
           : `Plano de Manutenção: ${data.maintenancePlan || ""}
+           Valor Mensal: R$ ${data.totalAmount.toFixed(2)}
            Descrição: ${data.description || ""}`,
     }
 
@@ -63,7 +71,6 @@ async function sendToAsaas(data: ContractData) {
       body: JSON.stringify(customerData),
     })
 
-    // Verificar se a resposta é válida antes de tentar analisá-la como JSON
     if (!customerResponse.ok) {
       const responseText = await customerResponse.text()
       console.error("Resposta de erro do Asaas:", responseText)
@@ -92,35 +99,45 @@ async function sendToAsaas(data: ContractData) {
 
     console.log("Cliente criado no Asaas:", customer)
 
-    // Determine the value based on the service type
-    let value = 1000; // Default value for projects
+    // 🔥 CORREÇÃO PRINCIPAL - USAR VALORES DO FRONTEND
+    let value: number;
 
     if (data.serviceType === "maintenance") {
-      // Values for maintenance plans
-      const planValues: Record<string, number> = {
-        basic: 100,
-        intermediate: 250,
-        advanced: 500,
-        premium: 1000,
-      };
-
-      // Check if maintenancePlan is defined and use it as an index
-      value = data.maintenancePlan && planValues[data.maintenancePlan] !== undefined
-        ? planValues[data.maintenancePlan]
-        : 100; // Default to 100 if undefined
+      // Para manutenção, usar o valor total (mensalidade)
+      value = data.totalAmount;
+    } else {
+      // Para projetos, usar o valor da PRIMEIRA PARCELA
+      value = data.firstPayment;
     }
+
+    // 🔥 VALIDAÇÃO DE SEGURANÇA
+    if (value < 50) {
+      throw new Error("Valor mínimo de cobrança é R$ 50,00");
+    }
+
+    if (value > 50000) {
+      throw new Error("Valor máximo de cobrança é R$ 50.000,00. Contate o suporte para valores maiores.");
+    }
+
+    // 🔥 LOG PARA DEBUG
+    console.log("=== VALOR ASAAS ===");
+    console.log("Service Type:", data.serviceType);
+    console.log("Total Amount:", data.totalAmount);
+    console.log("First Payment:", data.firstPayment);
+    console.log("Valor enviado ao Asaas:", value);
+    console.log("==================");
 
     // Criar cobrança ou assinatura com base no tipo de serviço
     if (data.serviceType === "project") {
-      // Criar cobrança única para projetos
       console.log("Criando cobrança para projeto...")
 
       const paymentData = {
         customer: customer.id,
-        billingType: "UNDEFINED", // Será definido posteriormente pelo cliente
-        value: value,
-        dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], // 3 dias a partir de hoje
-        description: `Impulsioneweb - Contrato de serviço - ${data.projectType || "Website/Sistema"}`,
+        billingType: "UNDEFINED",
+        value: value, // 🔥 AGORA USA O VALOR CORRETO
+        dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+        description: `Impulsioneweb - ${data.projectType || "Projeto"} - Parcela 1/${data.paymentStructure === "40-30-30" ? "3" : data.paymentStructure === "50-50" ? "2" : "1"}`,
+        externalReference: `project_${Date.now()}`, // Referência única
       }
 
       console.log("Dados da cobrança:", paymentData)
@@ -134,7 +151,6 @@ async function sendToAsaas(data: ContractData) {
         body: JSON.stringify(paymentData),
       })
 
-      // Verificar se a resposta é válida antes de tentar analisá-la como JSON
       if (!paymentResponse.ok) {
         const responseText = await paymentResponse.text()
         console.error("Resposta de erro do Asaas (pagamento):", responseText)
@@ -173,9 +189,9 @@ async function sendToAsaas(data: ContractData) {
 
       const subscriptionData = {
         customer: customer.id,
-        billingType: "UNDEFINED", // Será definido posteriormente pelo cliente
-        value: value,
-        nextDueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], // 1 dia a partir de hoje
+        billingType: "UNDEFINED",
+        value: value, // 🔥 AGORA USA O VALOR CORRETO
+        nextDueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
         cycle: "MONTHLY",
         description: `Impulsioneweb - Plano de Manutenção ${data.maintenancePlan || "Básico"}`,
       }
@@ -191,7 +207,6 @@ async function sendToAsaas(data: ContractData) {
         body: JSON.stringify(subscriptionData),
       })
 
-      // Verificar se a resposta é válida antes de tentar analisá-la como JSON
       if (!subscriptionResponse.ok) {
         const responseText = await subscriptionResponse.text()
         console.error("Resposta de erro do Asaas (assinatura):", responseText)
@@ -231,32 +246,29 @@ async function sendToAsaas(data: ContractData) {
   }
 }
 
-// Função para simular resposta do Asaas em ambiente de desenvolvimento
+// 🔥 FUNÇÃO MOCK ATUALIZADA
 function mockAsaasResponse(data: ContractData) {
   console.log("Simulando resposta do Asaas para os dados:", data)
 
-  // Gerar um ID aleatório para simular o ID do Asaas
   const mockId = `mock_${Math.random().toString(36).substring(2, 15)}`
 
-  // Determine the value based on the service type
-  let value = 1000; // Default value for projects
+  // 🔥 USAR VALORES REAIS DO FRONTEND
+  let value: number;
 
   if (data.serviceType === "maintenance") {
-    // Values for maintenance plans
-    const planValues: Record<string, number> = {
-      basic: 100,
-      intermediate: 250,
-      advanced: 500,
-      premium: 1000,
-    };
-
-    // Check if maintenancePlan is defined and use it as an index
-    value = data.maintenancePlan && planValues[data.maintenancePlan] !== undefined
-      ? planValues[data.maintenancePlan]
-      : 100; // Default to 100 if undefined
+    value = data.totalAmount;
+  } else {
+    value = data.firstPayment;
   }
 
-  // Simular um pequeno atraso para parecer uma chamada de API real
+  // 🔥 LOG PARA DEBUG
+  console.log("=== MOCK ASAAS ===");
+  console.log("Service Type:", data.serviceType);
+  console.log("Total Amount:", data.totalAmount);
+  console.log("First Payment:", data.firstPayment);
+  console.log("Valor simulado:", value);
+  console.log("==================");
+
   return new Promise((resolve) => {
     setTimeout(() => {
       if (data.serviceType === "project") {
@@ -264,10 +276,10 @@ function mockAsaasResponse(data: ContractData) {
           id: mockId,
           paymentId: mockId,
           customer: `customer_${mockId}`,
-          value: value,
+          value: value, // 🔥 VALOR CORRETO
           status: "PENDING",
           dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-          description: `Impulsioneweb - Contrato de serviço - ${data.projectType || "Website/Sistema"}`,
+          description: `Impulsioneweb - ${data.projectType || "Projeto"} - R$ ${value.toFixed(2)}`,
           invoiceUrl: `https://www.asaas.com/i/${mockId}`,
           bankSlipUrl: `https://www.asaas.com/b/${mockId}`,
         })
@@ -276,14 +288,14 @@ function mockAsaasResponse(data: ContractData) {
           id: mockId,
           paymentId: mockId,
           customer: `customer_${mockId}`,
-          value: value,
+          value: value, // 🔥 VALOR CORRETO
           status: "ACTIVE",
           nextDueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
           cycle: "MONTHLY",
-          description: `Impulsioneweb - Plano de Manutenção ${data.maintenancePlan || "Básico"}`,
+          description: `Impulsioneweb - Plano ${data.maintenancePlan || "Básico"} - R$ ${value.toFixed(2)}/mês`,
         })
       }
-    }, 1000) // Simular um atraso de 1 segundo
+    }, 1000)
   })
 }
 
@@ -291,15 +303,67 @@ export async function POST(request: Request) {
   try {
     const body = await request.json()
 
-    // Validação básica dos dados
+    // 🔥 VALIDAÇÃO MELHORADA
     if (!body.name || !body.email) {
-      return NextResponse.json({ success: false, message: "Nome e email são obrigatórios." }, { status: 400 })
+      return NextResponse.json(
+        { success: false, message: "Nome e email são obrigatórios." },
+        { status: 400 }
+      )
     }
+
+    // 🔥 VALIDAÇÃO DE VALORES FINANCEIROS
+    if (typeof body.totalAmount !== "number" || body.totalAmount <= 0) {
+      return NextResponse.json(
+        { success: false, message: "Valor total inválido." },
+        { status: 400 }
+      )
+    }
+
+    if (body.serviceType === "project") {
+      if (typeof body.firstPayment !== "number" || body.firstPayment <= 0) {
+        return NextResponse.json(
+          { success: false, message: "Valor da primeira parcela inválido." },
+          { status: 400 }
+        )
+      }
+
+      // 🔥 VALIDAÇÃO DE SEGURANÇA - VALOR MÍNIMO
+      if (body.totalAmount < 800) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Valor mínimo para projetos é R$ 800,00. Por favor, escolha um orçamento válido."
+          },
+          { status: 400 }
+        )
+      }
+
+      // 🔥 VALIDAÇÃO DE SEGURANÇA - VALOR MÁXIMO
+      if (body.totalAmount > 50000) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Para projetos acima de R$ 50.000, entre em contato pelo WhatsApp."
+          },
+          { status: 400 }
+        )
+      }
+    }
+
+    // 🔥 LOG COMPLETO PARA DEBUG
+    console.log("=== DADOS RECEBIDOS ===");
+    console.log("Nome:", body.name);
+    console.log("Email:", body.email);
+    console.log("Service Type:", body.serviceType);
+    console.log("Total Amount:", body.totalAmount);
+    console.log("First Payment:", body.firstPayment);
+    console.log("Payment Structure:", body.paymentStructure);
+    console.log("=====================");
 
     // Enviar por email (quando configurado)
     await sendContractEmail(body)
 
-    // Enviar para o Asaas (ou simular)
+    // Enviar para o Asaas
     let asaasResponse
     try {
       asaasResponse = await sendToAsaas(body)
@@ -308,16 +372,22 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           success: false,
-          message: `Erro ao processar dados no Asaas: ${error instanceof Error ? error.message : "Erro desconhecido"}`,
+          message: `Erro ao processar pagamento: ${error instanceof Error ? error.message : "Erro desconhecido"}`,
         },
         { status: 500 },
       )
     }
 
+    // 🔥 LOG FINAL
+    console.log("=== COBRANÇA CRIADA ===");
+    console.log("Payment ID:", asaasResponse.paymentId);
+    console.log("Valor cobrado:", asaasResponse.value);
+    console.log("=====================");
+
     return NextResponse.json(
       {
         success: true,
-        message: "Dados do contrato recebidos com sucesso!",
+        message: "Contrato criado com sucesso!",
         asaasData: asaasResponse,
       },
       { status: 200 },
@@ -328,7 +398,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         success: false,
-        message: "Ocorreu um erro ao processar os dados do contrato. Por favor, tente novamente mais tarde.",
+        message: "Ocorreu um erro ao processar os dados do contrato. Por favor, tente novamente.",
         error: error instanceof Error ? error.message : "Erro desconhecido",
       },
       { status: 500 },
