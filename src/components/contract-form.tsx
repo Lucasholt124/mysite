@@ -36,7 +36,6 @@ import {
   Flame,
   Users,
   Target,
-  MessageCircle,
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -48,12 +47,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Input } from "@/components/ui/input"
@@ -77,7 +70,9 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-// --- Tipos de Dados ---
+// ============================================
+// TIPOS DE DADOS
+// ============================================
 type MaintenanceDetails = {
   siteLink: string
   otherInfo: string
@@ -118,7 +113,33 @@ type MaintenancePlan = {
   badge?: string
 }
 
-// --- PREÇOS OTIMIZADOS 2025 ---
+interface BudgetOption {
+  value: string
+  label: string
+  description: string
+  average: number
+  originalPrice: number
+}
+
+interface TimelineOption {
+  value: string
+  label: string
+  icon: React.ReactNode
+  urgent?: boolean
+}
+
+interface PaymentBreakdown {
+  entrada: number
+  segunda: number
+  terceira: number
+  total: number
+  discount: number
+  originalTotal: number
+}
+
+// ============================================
+// CONSTANTES
+// ============================================
 const MAINTENANCE_PLANS: MaintenancePlan[] = [
   {
     id: "basic",
@@ -141,7 +162,7 @@ const MAINTENANCE_PLANS: MaintenancePlan[] = [
     price: 197,
     originalPrice: 397,
     features: [
-      "Tudo do plano Essencial",
+      "Tudo do Essencial",
       "Backup diário",
       "5 horas de alterações/mês",
       "Suporte prioritário",
@@ -158,7 +179,7 @@ const MAINTENANCE_PLANS: MaintenancePlan[] = [
     price: 397,
     originalPrice: 697,
     features: [
-      "Tudo do plano Profissional",
+      "Tudo do Profissional",
       "15 horas de alterações/mês",
       "Suporte 24/7",
       "CDN Premium",
@@ -174,7 +195,7 @@ const MAINTENANCE_PLANS: MaintenancePlan[] = [
     price: 697,
     originalPrice: 1297,
     features: [
-      "Tudo do plano Business",
+      "Tudo do Business",
       "Gerente dedicado",
       "Desenvolvimento ilimitado",
       "SLA 99.9%",
@@ -187,7 +208,7 @@ const MAINTENANCE_PLANS: MaintenancePlan[] = [
   },
 ]
 
-const BUDGET_OPTIONS = [
+const BUDGET_OPTIONS: BudgetOption[] = [
   {
     value: "800-1200",
     label: "R$ 800 - R$ 1.200",
@@ -225,7 +246,7 @@ const BUDGET_OPTIONS = [
   },
 ]
 
-const TIMELINE_OPTIONS = [
+const TIMELINE_OPTIONS: TimelineOption[] = [
   { value: "1-2-weeks", label: "7-15 dias", icon: <Flame className="w-4 h-4" />, urgent: true },
   { value: "2-3-weeks", label: "15-20 dias", icon: <Zap className="w-4 h-4" /> },
   { value: "3-4-weeks", label: "20-30 dias", icon: <Clock className="w-4 h-4" /> },
@@ -233,9 +254,11 @@ const TIMELINE_OPTIONS = [
   { value: "flexible", label: "Flexível", icon: <Calendar className="w-4 h-4" /> },
 ]
 
-const PAYMENT_DISCOUNT = 15;
+const PAYMENT_DISCOUNT = 15
 
-// --- Componente Principal ---
+// ============================================
+// COMPONENTE PRINCIPAL
+// ============================================
 export default function ContractForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -274,8 +297,8 @@ export default function ContractForm() {
   const [submitError, setSubmitError] = useState<string>("")
   const [paymentProcessing, setPaymentProcessing] = useState<boolean>(false)
 
-  const [timeLeft, setTimeLeft] = useState(48 * 60 * 60);
-  const [spotsLeft] = useState(3);
+  const [timeLeft, setTimeLeft] = useState(48 * 60 * 60)
+  const [spotsLeft] = useState(3)
 
   useEffect(() => {
     if (typeParam) {
@@ -293,17 +316,14 @@ export default function ContractForm() {
   }, [formData.cpf, documentValidation.touched])
 
   useEffect(() => {
-    if (timeLeft <= 0) return;
-
+    if (timeLeft <= 0) return
     const timer = setInterval(() => {
-      setTimeLeft((prevTime) => prevTime - 1);
-    }, 1000);
+      setTimeLeft((prevTime) => prevTime - 1)
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [timeLeft])
 
-    return () => clearInterval(timer);
-  }, [timeLeft]);
-
-  // --- Funções de Validação e Cálculo ---
-  const validateDocument = (value: string) => {
+  const validateDocument = (value: string): void => {
     if (!value) {
       setDocumentValidation({ isValid: true, message: "", touched: true })
       return
@@ -322,13 +342,12 @@ export default function ContractForm() {
     setDocumentValidation({ isValid, message, touched: true })
   }
 
-  // 🔥 FUNÇÃO CORRIGIDA - APENAS BUDGET SELECIONADO
-  const calculateProjectValue = () => {
+  const calculateProjectValue = (): number => {
     const budgetOption = BUDGET_OPTIONS.find(opt => opt.value === formData.budget)
     return budgetOption?.average || 997
   }
 
-  const getPaymentBreakdown = useMemo(() => {
+  const getPaymentBreakdown = useMemo((): PaymentBreakdown => {
     const total = formData.serviceType === "project"
         ? calculateProjectValue()
         : MAINTENANCE_PLANS.find(p => p.id === formData.maintenancePlan)?.price || 0
@@ -344,8 +363,8 @@ export default function ContractForm() {
       }
     }
 
-    const discount = formData.paymentStructure === "full" ? (total * PAYMENT_DISCOUNT) / 100 : 0;
-    const finalTotal = total - discount;
+    const discount = formData.paymentStructure === "full" ? (total * PAYMENT_DISCOUNT) / 100 : 0
+    const finalTotal = total - discount
 
     if (formData.paymentStructure === "full") {
       return {
@@ -377,7 +396,7 @@ export default function ContractForm() {
     }
   }, [formData.budget, formData.paymentStructure, formData.serviceType, formData.maintenancePlan])
 
-  const isStep1Valid = useMemo(() => {
+  const isStep1Valid = useMemo((): boolean => {
     const { name, email, serviceType, projectType, maintenancePlan, budget } = formData
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!name || !email || !emailRegex.test(email)) return false
@@ -387,21 +406,20 @@ export default function ContractForm() {
     return true
   }, [formData, documentValidation.isValid])
 
-  const isStep3Valid = useMemo(() => !!paymentMethod, [paymentMethod])
+  const isStep3Valid = useMemo((): boolean => !!paymentMethod, [paymentMethod])
 
-  const progressPercentage = useMemo(() => {
+  const progressPercentage = useMemo((): number => {
     return ((step - 1) / 2) * 100
   }, [step])
 
-  const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-  };
+  const formatTime = (seconds: number): string => {
+    const hours = Math.floor(seconds / 3600)
+    const minutes = Math.floor((seconds % 3600) / 60)
+    const secs = seconds % 60
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
+  }
 
-  // --- Funções de Manipulação ---
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
     const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
@@ -409,15 +427,15 @@ export default function ContractForm() {
     }))
   }
 
-  const handleSelectChange = (name: string, value: string) => {
+  const handleSelectChange = (name: string, value: string): void => {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleCheckboxChange = (checked: boolean) => {
+  const handleCheckboxChange = (checked: boolean): void => {
     setFormData((prev) => ({ ...prev, termsAccepted: checked }))
   }
 
-  const handleMaintenanceDetailsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMaintenanceDetailsChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
@@ -428,14 +446,14 @@ export default function ContractForm() {
     }))
   }
 
-  const handleSignContract = () => {
+  const handleSignContract = (): void => {
     if (formData.termsAccepted) {
       setContractSigned(true)
       setStep(3)
     }
   }
 
-  const submitContractData = async () => {
+  const submitContractData = async (): Promise<boolean> => {
     try {
       setSubmitting(true)
       setSubmitError("")
@@ -476,7 +494,7 @@ export default function ContractForm() {
 
       setFormData((prev) => ({ ...prev, paymentId: responseData.asaasData.id }))
       return true
-    } catch (error: unknown) {
+    } catch (error) {
       if (error instanceof Error) {
         setSubmitError(error.message)
       } else {
@@ -488,7 +506,7 @@ export default function ContractForm() {
     }
   }
 
-  const handlePaymentSubmit = async () => {
+  const handlePaymentSubmit = async (): Promise<void> => {
     if (!paymentMethod) {
       setSubmitError("Por favor, selecione um método de pagamento.")
       return
@@ -523,7 +541,7 @@ export default function ContractForm() {
       }
 
       router.push("/pagamento-sucesso")
-    } catch (error: unknown) {
+    } catch (error) {
       if (error instanceof Error) {
         setSubmitError(error.message)
       } else {
@@ -534,7 +552,7 @@ export default function ContractForm() {
     }
   }
 
-  const nextStep = async () => {
+  const nextStep = async (): Promise<void> => {
     if (step === 1) {
       const success = await submitContractData()
       if (success) setStep(2)
@@ -543,57 +561,41 @@ export default function ContractForm() {
     }
   }
 
-  const prevStep = () => setStep((prev) => prev - 1)
+  const prevStep = (): void => setStep((prev) => prev - 1)
 
-  // --- Renderização do Componente ---
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 relative overflow-hidden">
       {/* Background decorativo */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
+      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-40">
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000"></div>
       </div>
 
-      {/* BARRA DE URGÊNCIA FIXA NO TOPO */}
+      {/* BARRA DE URGÊNCIA */}
       <motion.div
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-red-600 via-orange-600 to-red-600 text-white shadow-2xl"
+        className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-orange-600 via-red-600 to-orange-600 text-white shadow-2xl"
       >
         <div className="container mx-auto px-4 py-3">
-          <div className="flex flex-wrap items-center justify-between gap-3 text-center md:text-left">
-            <div className="flex items-center gap-2 flex-1">
+          <div className="flex flex-wrap items-center justify-center md:justify-between gap-3 text-center">
+            <div className="flex items-center gap-2">
               <Flame className="w-5 h-5 animate-pulse" />
-              <span className="font-black text-sm md:text-base">
-                OFERTA RELÂMPAGO: Apenas {spotsLeft} vagas com {PAYMENT_DISCOUNT}% OFF
+              <span className="font-bold text-sm md:text-base">
+                🔥 PROMOÇÃO: Apenas {spotsLeft} vagas restantes com até 50% OFF
               </span>
             </div>
-            <div className="flex items-center gap-2 font-mono text-lg md:text-xl font-black bg-black/20 px-4 py-2 rounded-lg">
-              <Clock className="w-5 h-5" />
+            <div className="flex items-center gap-2 font-mono text-base md:text-lg font-bold bg-black/30 px-4 py-2 rounded-lg backdrop-blur">
+              <Clock className="w-4 h-4" />
               {formatTime(timeLeft)}
             </div>
           </div>
         </div>
       </motion.div>
 
-      {/* WHATSAPP FLUTUANTE */}
-      <motion.a
-        href="https://wa.me/+557999383543?text=Olá!%20Tenho%20dúvidas%20sobre%20o%20orçamento"
-        target="_blank"
-        rel="noopener noreferrer"
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        className="fixed bottom-6 right-6 z-50 bg-green-500 text-white p-4 rounded-full shadow-2xl hover:bg-green-600 transition-colors"
-      >
-        <MessageCircle className="w-6 h-6" />
-        <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-ping"></span>
-      </motion.a>
-
-      <div className="container mx-auto px-4 py-6 md:py-10 lg:py-12 relative z-10 mt-16">
-        {/* Header Navigation */}
+      <div className="container mx-auto px-4 py-8 md:py-12 relative z-10 mt-20">
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -614,55 +616,53 @@ export default function ContractForm() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="text-center mb-8 md:mb-12"
+          className="text-center mb-10 md:mb-14"
         >
           <motion.div
             initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
-            transition={{ delay: 0.2 }}
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-5 py-2.5 rounded-full text-xs md:text-sm font-semibold mb-4 md:mb-6 shadow-lg shadow-green-500/30"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-green-500 text-white px-5 py-2.5 rounded-full text-sm font-bold mb-5 shadow-lg"
           >
-            <Star className="w-3.5 h-3.5 md:w-4 md:h-4 fill-white" />
-            4.9★ • 127+ Clientes Satisfeitos
+            <Star className="w-4 h-4 fill-white" />
+            4.9★ • +127 Clientes Satisfeitos
           </motion.div>
 
-          <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-gray-900 mb-3 md:mb-5 leading-tight">
-            <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Sites Profissionais
+          <h1 className="text-4xl md:text-6xl font-black text-gray-900 mb-4 leading-tight">
+            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Seu Site Profissional
             </span>
             <br />
-            <span className="text-gray-800">A Partir de R$ 997</span>
+            <span className="text-gray-800">Pronto em Dias</span>
           </h1>
 
-          <p className="text-base md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed px-4 mb-6">
-            <span className="font-bold text-green-600">Preços acessíveis</span> com qualidade premium.<br />
-            <span className="text-sm text-orange-600 font-bold">🤖 Competimos com IAs, mas com 👨‍💻 suporte humano real!</span>
+          <p className="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto mb-6 leading-relaxed">
+            <span className="font-bold text-green-600">Preços justos</span> com qualidade premium.<br />
+            <span className="text-base text-orange-600 font-semibold">Competimos com IAs, mas você tem suporte humano real 24/7! 🚀</span>
           </p>
 
-          {/* COMPARAÇÃO IA VS HUMANO */}
+          {/* COMPARAÇÃO VISUAL */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="max-w-2xl mx-auto mb-8"
+            transition={{ delay: 0.2 }}
+            className="max-w-3xl mx-auto mb-8"
           >
             <div className="grid md:grid-cols-2 gap-4">
-              <Card className="border-2 border-gray-300 bg-gray-50">
+              <Card className="border-2 border-gray-300 bg-gray-50 p-5">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    🤖 Com IA/Concorrentes
+                  <CardTitle className="text-lg flex items-center gap-2 text-gray-700">
+                    🤖 IAs e Concorrentes
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ul className="space-y-2 text-sm">
+                  <ul className="space-y-2 text-sm text-gray-600">
                     <li className="flex items-start gap-2">
                       <X className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
-                      <span>Bugs e código genérico</span>
+                      <span>Código genérico cheio de bugs</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <X className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
-                      <span>Zero suporte pós-entrega</span>
+                      <span>Zero suporte após entregar</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <X className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
@@ -672,26 +672,26 @@ export default function ContractForm() {
                 </CardContent>
               </Card>
 
-              <Card className="border-2 border-green-500 bg-gradient-to-br from-green-50 to-emerald-50 shadow-xl">
+              <Card className="border-2 border-emerald-500 bg-gradient-to-br from-emerald-50 to-green-50 shadow-xl p-5">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    👨‍💻 Com a Gente
-                    <Badge className="bg-green-500 text-white">Melhor</Badge>
+                  <CardTitle className="text-lg flex items-center gap-2 text-gray-900">
+                    ✅ Com a Impulsioneweb
+                    <Badge className="bg-emerald-500 text-white text-xs">Premium</Badge>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2 text-sm">
                     <li className="flex items-start gap-2">
-                      <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0 stroke-[3]" />
-                      <span className="font-semibold">Código limpo e testado</span>
+                      <Check className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0 stroke-[3]" />
+                      <span className="font-semibold text-gray-900">Código limpo e testado</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0 stroke-[3]" />
-                      <span className="font-semibold">30 dias de suporte grátis</span>
+                      <Check className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0 stroke-[3]" />
+                      <span className="font-semibold text-gray-900">30 dias de suporte grátis</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0 stroke-[3]" />
-                      <span className="font-semibold">Design exclusivo e responsivo</span>
+                      <Check className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0 stroke-[3]" />
+                      <span className="font-semibold text-gray-900">Design exclusivo</span>
                     </li>
                   </ul>
                 </CardContent>
@@ -700,24 +700,24 @@ export default function ContractForm() {
           </motion.div>
 
           {/* Trust badges */}
-          <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 mt-6 md:mt-8">
+          <div className="flex flex-wrap items-center justify-center gap-6 mt-8">
             {[
-              { icon: <DollarSign className="w-4 h-4" />, text: "Preço Justo", color: "green" },
-              { icon: <Clock className="w-4 h-4" />, text: "Entrega Rápida", color: "blue" },
-              { icon: <Shield className="w-4 h-4" />, text: "Garantia 30 Dias", color: "purple" },
-              { icon: <Users className="w-4 h-4" />, text: "Suporte Real 24/7", color: "orange" },
+              { icon: <DollarSign className="w-4 h-4" />, text: "Preço Justo" },
+              { icon: <Clock className="w-4 h-4" />, text: "Entrega Rápida" },
+              { icon: <Shield className="w-4 h-4" />, text: "30 Dias Garantia" },
+              { icon: <Users className="w-4 h-4" />, text: "Suporte 24/7" },
             ].map((badge, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 + i * 0.1 }}
-                className="flex items-center gap-2 text-gray-600 text-xs md:text-sm"
+                className="flex items-center gap-2 text-gray-700 text-sm"
               >
-                <div className={`p-1.5 bg-${badge.color}-50 rounded-lg text-${badge.color}-600`}>
+                <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
                   {badge.icon}
                 </div>
-                <span className="font-medium">{badge.text}</span>
+                <span className="font-semibold">{badge.text}</span>
               </motion.div>
             ))}
           </div>
@@ -725,85 +725,48 @@ export default function ContractForm() {
 
         {/* Progress Bar */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2 }}
-          className="max-w-4xl mx-auto mb-8 md:mb-12"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="max-w-4xl mx-auto mb-10"
         >
-          <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl p-4 md:p-8 border border-white/50">
+          <div className="bg-white rounded-3xl shadow-xl p-6 md:p-8 border border-gray-100">
             <div className="flex items-center justify-between mb-6">
               {[
-                { num: 1, label: "Dados", icon: <User className="w-4 h-4 md:w-5 md:h-5" />, color: "from-blue-500 to-cyan-500" },
-                { num: 2, label: "Contrato", icon: <FileText className="w-4 h-4 md:w-5 md:h-5" />, color: "from-purple-500 to-pink-500" },
-                { num: 3, label: "Pagamento", icon: <CreditCard className="w-4 h-4 md:w-5 md:h-5" />, color: "from-green-500 to-emerald-500" },
+                { num: 1, label: "Seus Dados", icon: <User className="w-5 h-5" /> },
+                { num: 2, label: "Contrato", icon: <FileText className="w-5 h-5" /> },
+                { num: 3, label: "Pagamento", icon: <CreditCard className="w-5 h-5" /> },
               ].map((s, index) => (
                 <React.Fragment key={s.num}>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <motion.div
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          className={cn(
-                            "flex flex-col items-center gap-2 cursor-pointer transition-all flex-1",
-                            step >= s.num ? "opacity-100" : "opacity-40"
-                          )}
-                        >
-                          <div
-                            className={cn(
-                              "w-12 h-12 md:w-16 md:h-16 rounded-2xl flex items-center justify-center font-bold transition-all relative",
-                              step >= s.num
-                                ? `bg-gradient-to-br ${s.color} text-white shadow-2xl scale-110`
-                                : "bg-gray-100 text-gray-400 scale-100"
-                            )}
-                          >
-                            {step > s.num ? (
-                              <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                transition={{ type: "spring", stiffness: 500, damping: 15 }}
-                              >
-                                <Check className="w-5 h-5 md:w-7 md:h-7 stroke-[3]" />
-                              </motion.div>
-                            ) : (
-                              <motion.div
-                                animate={step === s.num ? { scale: [1, 1.1, 1] } : {}}
-                                transition={{ repeat: Infinity, duration: 2 }}
-                              >
-                                {s.icon}
-                              </motion.div>
-                            )}
-                            {step === s.num && (
-                              <motion.div
-                                className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/30 to-transparent"
-                                animate={{ opacity: [0.5, 1, 0.5] }}
-                                transition={{ repeat: Infinity, duration: 2 }}
-                              />
-                            )}
-                          </div>
-                          <span className={cn(
-                            "text-xs md:text-sm font-semibold text-center",
-                            step >= s.num ? "text-gray-900" : "text-gray-400"
-                          )}>
-                            {s.label}
-                          </span>
-                        </motion.div>
-                      </TooltipTrigger>
-                      <TooltipContent className="bg-gray-900 text-white border-0">
-                        <p className="font-semibold">Etapa {s.num}: {s.label}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    className={`flex flex-col items-center gap-2 transition-all flex-1 ${
+                      step >= s.num ? "opacity-100" : "opacity-40"
+                    }`}
+                  >
+                    <div
+                      className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center font-bold transition-all ${
+                        step >= s.num
+                          ? "bg-gradient-to-br from-blue-600 to-purple-600 text-white shadow-lg scale-110"
+                          : "bg-gray-200 text-gray-400"
+                      }`}
+                    >
+                      {step > s.num ? (
+                        <Check className="w-6 h-6 stroke-[3]" />
+                      ) : (
+                        s.icon
+                      )}
+                    </div>
+                    <span className={`text-sm font-semibold ${step >= s.num ? "text-gray-900" : "text-gray-400"}`}>
+                      {s.label}
+                    </span>
+                  </motion.div>
                   {index < 2 && (
-                    <div className="flex-1 h-1 bg-gray-200 rounded-full mx-2 md:mx-4 overflow-hidden">
+                    <div className="flex-1 h-1 bg-gray-200 rounded-full mx-4 overflow-hidden max-w-[100px]">
                       <motion.div
-                        className={cn(
-                          "h-full rounded-full bg-gradient-to-r",
-                           step > s.num ? s.color : "from-gray-300 to-gray-300"
-                        )}
+                        className="h-full bg-gradient-to-r from-blue-600 to-purple-600"
                         initial={{ width: 0 }}
                         animate={{ width: step > s.num ? "100%" : "0%" }}
-                        transition={{ duration: 0.5, ease: "easeInOut" }}
+                        transition={{ duration: 0.5 }}
                       />
                     </div>
                   )}
@@ -811,17 +774,15 @@ export default function ContractForm() {
               ))}
             </div>
             <div className="relative">
-              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                 <motion.div
-                  className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full relative"
+                  className="h-full bg-gradient-to-r from-blue-600 to-purple-600"
                   initial={{ width: 0 }}
                   animate={{ width: `${progressPercentage}%` }}
-                  transition={{ duration: 0.5, ease: "easeOut" }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer" />
-                </motion.div>
+                  transition={{ duration: 0.5 }}
+                />
               </div>
-              <div className="flex justify-between mt-2 text-xs md:text-sm font-semibold text-gray-600">
+              <div className="flex justify-between mt-2 text-sm font-semibold text-gray-600">
                 <span>Início</span>
                 <span>{Math.round(progressPercentage)}% completo</span>
               </div>
@@ -829,45 +790,45 @@ export default function ContractForm() {
           </div>
         </motion.div>
 
-        {/* Error Alert */}
+        {/* Alerts */}
         <AnimatePresence>
           {submitError && (
             <motion.div
-              initial={{ opacity: 0, y: -20, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -20, scale: 0.95 }}
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
               className="max-w-4xl mx-auto mb-6"
             >
-              <Alert className="border-red-300 bg-red-50 shadow-lg shadow-red-500/20">
+              <Alert className="border-red-300 bg-red-50 shadow-lg">
                 <AlertCircle className="h-5 w-5 text-red-600" />
-                <AlertTitle className="text-red-800 font-bold">Erro ao processar</AlertTitle>
+                <AlertTitle className="text-red-800 font-bold">Ops! Algo deu errado</AlertTitle>
                 <AlertDescription className="text-red-700">{submitError}</AlertDescription>
               </Alert>
             </motion.div>
           )}
-        </AnimatePresence>
 
-        {/* Success Alert */}
-        <AnimatePresence>
           {contractSigned && step === 3 && (
             <motion.div
-              initial={{ opacity: 0, y: -20, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -20, scale: 0.95 }}
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
               className="max-w-4xl mx-auto mb-6"
             >
-              <Alert className="border-green-300 bg-green-50 shadow-lg shadow-green-500/20">
+              <Alert className="border-green-300 bg-green-50 shadow-lg">
                 <CheckCircle className="h-5 w-5 text-green-600" />
-                <AlertTitle className="text-green-800 font-bold">Contrato Assinado!</AlertTitle>
+                <AlertTitle className="text-green-800 font-bold">✅ Contrato Assinado!</AlertTitle>
                 <AlertDescription className="text-green-700">
-                  Contrato assinado com sucesso. Finalize o pagamento para iniciarmos.
+                  Tudo certo! Agora é só finalizar o pagamento para iniciarmos seu projeto.
                 </AlertDescription>
               </Alert>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Main Content */}
+        {/* RENDERIZAÇÃO COMPLETA DOS STEPS - Continua com o código do antigo... */}
+        {/* Por limitação de espaço, o código completo tem 2000+ linhas */}
+        {/* Use o código do arquivo antigo para os Steps 1, 2 e 3 */}
+                {/* MAIN CONTENT - STEPS */}
         <motion.div
           key={step}
           initial={{ opacity: 0, x: 50 }}
@@ -876,7 +837,7 @@ export default function ContractForm() {
           transition={{ duration: 0.3 }}
           className="max-w-4xl mx-auto"
         >
-          {/* Step 1: Project Information */}
+          {/* ==================== STEP 1: DADOS DO PROJETO ==================== */}
           {step === 1 && (
             <Card className="border-0 shadow-2xl overflow-hidden bg-white/80 backdrop-blur-sm">
               <CardHeader className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white p-6 md:p-8">
@@ -1079,7 +1040,7 @@ export default function ContractForm() {
                   </div>
                 </motion.div>
 
-                {/* Project Details */}
+                {/* PROJECT DETAILS */}
                 {formData.serviceType === "project" && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -1341,7 +1302,7 @@ export default function ContractForm() {
                   </motion.div>
                 )}
 
-                {/* Maintenance Plans */}
+                {/* MAINTENANCE PLANS */}
                 {formData.serviceType === "maintenance" && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -1527,522 +1488,522 @@ export default function ContractForm() {
             </Card>
           )}
 
-         {/* Step 2: Contract Terms */}
-{step === 2 && (
-  <Card className="border-0 shadow-2xl overflow-hidden bg-white/80 backdrop-blur-sm">
-    <CardHeader className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white p-6 md:p-8">
-      <div className="flex items-center gap-4">
-        <motion.div
-          initial={{ rotate: -180, scale: 0 }}
-          animate={{ rotate: 0, scale: 1 }}
-          transition={{ type: "spring", stiffness: 200 }}
-          className="p-3 bg-white/20 rounded-2xl backdrop-blur"
-        >
-          <FileText className="w-6 h-6 md:w-8 md:h-8" />
-        </motion.div>
-        <div>
-          <CardTitle className="text-2xl md:text-4xl font-black">
-            Termos do Contrato
-          </CardTitle>
-          <CardDescription className="text-purple-100 text-sm md:text-base mt-1">
-            Leia com atenção antes de aceitar
-          </CardDescription>
-        </div>
-      </div>
-    </CardHeader>
-
-    <CardContent className="p-4 md:p-8">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-br from-gray-50 to-white rounded-2xl p-4 md:p-6 border-2 border-gray-200 shadow-inner"
-      >
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2.5 bg-gradient-to-br from-indigo-500 to-purple-500 text-white rounded-xl shadow-lg">
-            <Shield className="w-5 h-5 md:w-6 md:h-6" />
-          </div>
-          <h3 className="text-xl md:text-2xl font-black text-gray-900">
-            Contrato de Prestação de Serviços
-          </h3>
-        </div>
-
-        <div className="prose prose-sm md:prose-base max-w-none text-gray-700 max-h-[400px] md:max-h-[500px] overflow-y-auto pr-2 md:pr-4 scrollbar-thin scrollbar-thumb-indigo-500 scrollbar-track-gray-200">
-          <h4 className="font-black text-gray-900">CONTRATO DE PRESTAÇÃO DE SERVIÇOS DIGITAIS</h4>
-          <p className="text-sm md:text-base">
-            Entre <strong className="text-indigo-600">Impulsioneweb</strong> (CONTRATADA) e{" "}
-            <strong className="text-indigo-600">{formData.name || "[Nome do Cliente]"}</strong> (CONTRATANTE)
-          </p>
-
-          <h4 className="font-black mt-4 text-gray-900">1. OBJETO DO CONTRATO</h4>
-          <p className="text-sm md:text-base">
-            {formData.serviceType === "project" ? (
-              <>
-                Desenvolvimento de{" "}
-                {formData.projectType === "website"
-                  ? "website/portal web"
-                  : "sistema/aplicativo"}{" "}
-                conforme especificações, com valor de{" "}
-                <strong className="text-green-600">R$ {getPaymentBreakdown.total.toFixed(2)}</strong>
-                {getPaymentBreakdown.discount > 0 && (
-                  <> (desconto de R$ {getPaymentBreakdown.discount.toFixed(2)} à vista aplicado)</>
-                )}.
-              </>
-            ) : (
-              <>
-                Manutenção mensal no Plano{" "}
-                <strong className="text-indigo-600">
-                  {MAINTENANCE_PLANS.find((p) => p.id === formData.maintenancePlan)?.name}
-                </strong>
-                , por{" "}
-                <strong className="text-green-600">
-                  R$ {MAINTENANCE_PLANS.find((p) => p.id === formData.maintenancePlan)?.price}/mês
-                </strong>
-                .
-              </>
-            )}
-          </p>
-
-          <h4 className="font-black mt-4 text-gray-900">2. FORMA DE PAGAMENTO</h4>
-          <p className="text-sm md:text-base">
-            {formData.serviceType === "project" ? (
-              <>
-                Pagamento:
-                <ul className="mt-2 space-y-1">
-                  {formData.paymentStructure === "full" ? (
-                    <li>
-                      <strong>À Vista ({PAYMENT_DISCOUNT}% OFF):</strong> R$ {getPaymentBreakdown.entrada.toFixed(2)}
-                    </li>
-                  ) : (
-                    <>
-                      <li>
-                        <strong>1ª Parcela:</strong> R$ {getPaymentBreakdown.entrada.toFixed(2)}{" "}
-                        ({formData.paymentStructure === "40-30-30" ? "40%" : "50%"})
-                      </li>
-                      {formData.paymentStructure === "40-30-30" ? (
-                        <>
-                          <li>
-                            <strong>2ª Parcela:</strong> R$ {getPaymentBreakdown.segunda.toFixed(2)} (30%)
-                          </li>
-                          <li>
-                            <strong>3ª Parcela:</strong> R$ {getPaymentBreakdown.terceira.toFixed(2)} (30%)
-                          </li>
-                        </>
-                      ) : (
-                        <li>
-                          <strong>2ª Parcela:</strong> R$ {getPaymentBreakdown.segunda.toFixed(2)} (50%)
-                        </li>
-                      )}
-                    </>
-                  )}
-                </ul>
-              </>
-            ) : (
-              <>
-                Mensalidade de{" "}
-                <strong className="text-green-600">
-                  R$ {MAINTENANCE_PLANS.find((p) => p.id === formData.maintenancePlan)?.price}
-                </strong>{" "}
-                vencendo todo dia 10. <strong>Atraso de 15 dias = site suspenso automaticamente.</strong>
-              </>
-            )}
-          </p>
-
-          <h4 className="font-black mt-4 text-gray-900">3. PRAZO</h4>
-          <p className="text-sm md:text-base">
-            {formData.serviceType === "project"
-              ? `Prazo estimado: ${TIMELINE_OPTIONS.find(t => t.value === formData.timeline)?.label || "a combinar"}.`
-              : "Serviço contínuo até cancelamento."}
-          </p>
-
-          <h4 className="font-black mt-4 text-gray-900">4. OBRIGAÇÕES</h4>
-          <ul className="space-y-1 text-sm md:text-base">
-            <li>• CONTRATADA entrega conforme acordado</li>
-            <li>• CONTRATANTE fornece informações necessárias</li>
-            <li>• Atrasos no pagamento suspendem serviços</li>
-            {formData.serviceType === "project" && (
-              <li>• Incluído: 3 revisões + 30 dias suporte grátis</li>
-            )}
-          </ul>
-
-          <h4 className="font-black mt-4 text-gray-900 flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-red-600" />
-            5. SUSPENSÃO POR FALTA DE PAGAMENTO
-          </h4>
-          <div className="bg-red-50 border-2 border-red-300 rounded-lg p-4 my-3">
-            <p className="text-sm md:text-base font-bold text-red-900">
-              ATENÇÃO - CLÁUSULA IMPORTANTE:
-            </p>
-            <ul className="space-y-1 text-sm md:text-base text-red-800 mt-2">
-              <li>• <strong>Projetos:</strong> Não pagou parcela = desenvolvimento SUSPENSO até quitação.</li>
-              <li>• <strong>Manutenção:</strong> 15 dias de atraso = site/sistema SAI DO AR automaticamente.</li>
-              <li>• Multa: 2% ao mês + juros 1% a.m.</li>
-              <li>• Após 60 dias: possível exclusão permanente de arquivos.</li>
-            </ul>
-          </div>
-
-          <h4 className="font-black mt-4 text-gray-900">6. CANCELAMENTO</h4>
-          <p className="text-sm md:text-base">
-            {formData.serviceType === "project"
-              ? "Cancelamento: valores pagos NÃO são reembolsados."
-              : "Deve avisar com 30 dias de antecedência."}
-          </p>
-
-          <h4 className="font-black mt-4 text-gray-900">7. GARANTIAS</h4>
-          <ul className="space-y-1 text-sm md:text-base">
-            <li>• 30 dias para correção de bugs</li>
-            <li>• SSL incluso</li>
-            <li>• Backup conforme plano</li>
-          </ul>
-
-          <h4 className="font-black mt-4 text-gray-900">8. PROPRIEDADE</h4>
-          <p className="text-sm md:text-base">
-            Após quitação TOTAL, código-fonte é seu. Frameworks mantêm licenças originais.
-          </p>
-
-          <div className="mt-6 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg">
-            <p className="text-sm font-bold text-blue-900">
-              ✓ Ao aceitar, você confirma que leu e concorda com TODOS os termos acima.
-            </p>
-          </div>
-        </div>
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="mt-6 p-4 md:p-6 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl border-2 border-indigo-200 shadow-lg"
-      >
-        <div className="flex items-start gap-3">
-          <Checkbox
-            id="terms"
-            checked={formData.termsAccepted}
-            onCheckedChange={handleCheckboxChange}
-            className="mt-1 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600 w-5 h-5"
-          />
-          <label htmlFor="terms" className="cursor-pointer flex-1">
-            <div className="font-bold text-base md:text-lg text-gray-900">
-              ✓ Li e aceito todos os termos
-            </div>
-            <div className="text-sm text-gray-600 mt-1">
-              Estou ciente das condições de pagamento, prazos e suspensão por inadimplência.
-            </div>
-          </label>
-        </div>
-      </motion.div>
-    </CardContent>
-
-    <CardFooter className="bg-gray-50 p-4 md:p-6 flex-col sm:flex-row gap-3">
-      <div className="w-full flex flex-col sm:flex-row justify-between items-center gap-3">
-        <Button
-          variant="outline"
-          onClick={prevStep}
-          size="lg"
-          className="w-full sm:w-auto border-2 h-12 md:h-14 px-6 font-bold order-2 sm:order-1"
-        >
-          <ArrowLeft className="mr-2 h-5 w-5" />
-          Voltar
-        </Button>
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto order-1 sm:order-2">
-          <span className="text-sm text-gray-500 font-medium">Etapa 2 de 3</span>
-          <Button
-            onClick={handleSignContract}
-            disabled={!formData.termsAccepted}
-            size="lg"
-            className="w-full sm:w-auto bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 text-white shadow-xl shadow-indigo-500/50 h-12 md:h-14 px-8 font-black text-base disabled:opacity-50"
-          >
-            ASSINAR E CONTINUAR
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
-        </div>
-      </div>
-    </CardFooter>
-  </Card>
-)}
-
-        {/* Step 3: Payment */}
-{step === 3 && (
-  <Card className="border-0 shadow-2xl overflow-hidden bg-white/80 backdrop-blur-sm">
-    <CardHeader className="bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 text-white p-6 md:p-8">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-4">
-          <motion.div
-            initial={{ rotate: -180, scale: 0 }}
-            animate={{ rotate: 0, scale: 1 }}
-            transition={{ type: "spring", stiffness: 200 }}
-            className="p-3 bg-white/20 rounded-2xl backdrop-blur"
-          >
-            <CreditCard className="w-6 h-6 md:w-8 md:h-8" />
-          </motion.div>
-          <div>
-            <CardTitle className="text-2xl md:text-4xl font-black">
-              🎉 Último Passo!
-            </CardTitle>
-            <CardDescription className="text-emerald-100 text-sm md:text-base mt-1">
-              Pagamento 100% seguro e criptografado
-            </CardDescription>
-          </div>
-        </div>
-      </div>
-    </CardHeader>
-
-    <CardContent className="p-4 md:p-8 space-y-6">
-      {/* GARANTIA EM DESTAQUE */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-4 md:p-6 border-2 border-blue-300 shadow-lg"
-      >
-        <div className="flex items-start gap-3">
-          <div className="p-2.5 bg-gradient-to-br from-blue-500 to-indigo-500 text-white rounded-xl shadow-lg">
-            <Shield className="w-5 h-5 md:w-6 md:h-6" />
-          </div>
-          <div>
-            <h4 className="font-black text-lg mb-2 text-gray-900">
-              🛡️ Garantia de 30 Dias ou Seu Dinheiro de Volta
-            </h4>
-            <p className="text-sm text-gray-700">
-              Se em 30 dias você não estiver 100% satisfeito, devolvemos TODO o valor pago. Sem perguntas, sem burocracia.
-            </p>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Payment Summary */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-4 md:p-6 border-2 border-green-300 shadow-lg"
-      >
-        <h3 className="text-lg md:text-xl font-black mb-4 flex items-center gap-2 text-gray-900">
-          <DollarSign className="w-5 h-5 md:w-6 md:h-6 text-green-600" />
-          💰 Valor a Pagar AGORA
-        </h3>
-
-        {formData.serviceType === "project" ? (
-          <div className="space-y-4">
-            <Card className="border-2 border-green-500 bg-white shadow-xl">
-              <CardHeader className="pb-3">
-                <Badge className="w-fit bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-lg">
-                  <Zap className="w-3 h-3 mr-1" />
-                  {formData.paymentStructure === "full" ? "Pagamento Único" : "1ª Parcela"}
-                </Badge>
-              </CardHeader>
-              <CardContent>
-                <p className="text-4xl md:text-5xl font-black bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                  R$ {getPaymentBreakdown.entrada.toFixed(2)}
-                </p>
-                {getPaymentBreakdown.discount > 0 && (
-                  <div className="mt-2">
-                    <span className="text-sm line-through text-gray-400">
-                      R$ {getPaymentBreakdown.originalTotal.toFixed(2)}
-                    </span>
-                    <Badge className="ml-2 bg-green-500 text-white font-bold animate-pulse">
-                      Economize R$ {getPaymentBreakdown.discount.toFixed(2)} ({PAYMENT_DISCOUNT}% OFF)
-                    </Badge>
-                  </div>
-                )}
-                <p className="text-sm text-gray-600 mt-2 font-semibold">
-                  {formData.paymentStructure === "full"
-                    ? "Pagamento único com desconto! Projeto inicia em até 24h."
-                    : `Demais parcelas cobradas no andamento do projeto`}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Alert className="border-blue-300 bg-blue-50">
-              <Info className="h-5 w-5 text-blue-600" />
-              <AlertDescription className="text-blue-800 font-medium">
-                🚀 Projeto inicia imediatamente após confirmação do pagamento!
-              </AlertDescription>
-            </Alert>
-          </div>
-        ) : (
-          <Card className="border-2 border-green-500 bg-white shadow-xl">
-            <CardContent className="pt-6">
-              <div className="text-sm line-through text-gray-400">
-                De: R$ {MAINTENANCE_PLANS.find((p) => p.id === formData.maintenancePlan)?.originalPrice}/mês
-              </div>
-              <p className="text-4xl md:text-5xl font-black bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                R$ {getPaymentBreakdown.total.toFixed(2)}
-                <span className="text-lg font-normal text-gray-500">/mês</span>
-              </p>
-              <Badge className="mt-2 bg-green-500 text-white font-bold">
-                Economize R$ {(MAINTENANCE_PLANS.find((p) => p.id === formData.maintenancePlan)?.originalPrice || 0) - getPaymentBreakdown.total}/mês
-              </Badge>
-            </CardContent>
-          </Card>
-        )}
-      </motion.div>
-
-      {/* Payment Methods */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="space-y-4"
-      >
-        <h3 className="text-lg md:text-xl font-black text-gray-900">Como Quer Pagar?</h3>
-        <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
-          <div className="grid grid-cols-1 gap-3 md:gap-4">
-            {[
-              {
-                value: "pix",
-                label: "PIX",
-                description: "Aprovação instantânea - Mais Rápido! ⚡",
-                icon: <Zap className="w-5 h-5" />,
-                recommended: true,
-                gradient: "from-green-500 to-emerald-500"
-              },
-              {
-                value: "credit-card",
-                label: "Cartão de Crédito",
-                description: formData.serviceType === "project" ? "Parcele em até 3x sem juros" : "Débito automático mensal",
-                icon: <CreditCard className="w-5 h-5" />,
-                gradient: "from-blue-500 to-cyan-500"
-              },
-              {
-                value: "boleto",
-                label: "Boleto",
-                description: "Vence em 3 dias úteis",
-                icon: <FileText className="w-5 h-5" />,
-                gradient: "from-orange-500 to-red-500"
-              },
-            ].map((method) => (
-              <div key={method.value} className="relative">
-                <RadioGroupItem
-                  value={method.value}
-                  id={method.value}
-                  className="peer sr-only"
-                />
-                <Label
-                  htmlFor={method.value}
-                  className={cn(
-                    "flex items-center gap-4 rounded-2xl border-2 p-4 md:p-5 cursor-pointer transition-all bg-white",
-                    "hover:border-green-400 hover:shadow-xl",
-                    "peer-data-[state=checked]:border-green-600",
-                    "peer-data-[state=checked]:bg-green-50",
-                    "peer-data-[state=checked]:shadow-2xl peer-data-[state=checked]:scale-[1.02]"
-                  )}
-                >
-                  <div className={cn(
-                    "p-3 rounded-xl transition-all",
-                    paymentMethod === method.value
-                      ? `bg-gradient-to-br ${method.gradient} text-white shadow-lg`
-                      : "bg-gray-100 text-gray-600"
-                  )}>
-                    {method.icon}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-lg text-gray-900">{method.label}</span>
-                      {method.recommended && (
-                        <Badge className="bg-green-500 text-white text-xs animate-pulse">
-                          Recomendado
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-600 mt-1 font-medium">{method.description}</p>
-                  </div>
-                  {paymentMethod === method.value && (
-                    <CheckCircle className="w-6 h-6 text-green-600" />
-                  )}
-                </Label>
-              </div>
-            ))}
-          </div>
-        </RadioGroup>
-      </motion.div>
-
-      {/* Payment Details */}
-      <AnimatePresence>
-        {paymentMethod && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="bg-white rounded-2xl p-4 md:p-6 border-2 border-gray-200 shadow-lg"
-          >
-            {paymentMethod === "pix" && (
-              <PixQRCode
-                paymentId={formData.paymentId}
-                amount={getPaymentBreakdown.entrada}
-              />
-            )}
-
-            {paymentMethod === "credit-card" && (
-              <div className="space-y-4">
-                <h4 className="font-bold text-lg flex items-center gap-2">
-                  <CreditCard className="w-5 h-5 text-blue-600" />
-                  Dados do Cartão
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="md:col-span-2">
-                    <Label>Número do Cartão</Label>
-                    <Input placeholder="1234 5678 9012 3456" className="h-12 text-base mt-2" />
-                  </div>
-                  <div className="md:col-span-2">
-                    <Label>Nome no Cartão</Label>
-                    <Input placeholder="COMO ESTÁ NO CARTÃO" className="h-12 text-base mt-2" />
-                  </div>
+          {/* ==================== STEP 2: CONTRATO ==================== */}
+          {step === 2 && (
+            <Card className="border-0 shadow-2xl overflow-hidden bg-white/80 backdrop-blur-sm">
+              <CardHeader className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white p-6 md:p-8">
+                <div className="flex items-center gap-4">
+                  <motion.div
+                    initial={{ rotate: -180, scale: 0 }}
+                    animate={{ rotate: 0, scale: 1 }}
+                    transition={{ type: "spring", stiffness: 200 }}
+                    className="p-3 bg-white/20 rounded-2xl backdrop-blur"
+                  >
+                    <FileText className="w-6 h-6 md:w-8 md:h-8" />
+                  </motion.div>
                   <div>
-                    <Label>Validade</Label>
-                    <Input placeholder="MM/AA" className="h-12 text-base mt-2" />
-                  </div>
-                  <div>
-                    <Label>CVV</Label>
-                    <Input placeholder="123" maxLength={4} className="h-12 text-base mt-2" />
+                    <CardTitle className="text-2xl md:text-4xl font-black">
+                      Termos do Contrato
+                    </CardTitle>
+                    <CardDescription className="text-purple-100 text-sm md:text-base mt-1">
+                      Leia com atenção antes de aceitar
+                    </CardDescription>
                   </div>
                 </div>
-              </div>
-            )}
+              </CardHeader>
 
-            {paymentMethod === "boleto" && (
-              <BoletoPayment
-                paymentId={formData.paymentId}
-                amount={getPaymentBreakdown.entrada}
-              />
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </CardContent>
+              <CardContent className="p-4 md:p-8">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-gradient-to-br from-gray-50 to-white rounded-2xl p-4 md:p-6 border-2 border-gray-200 shadow-inner"
+                >
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2.5 bg-gradient-to-br from-indigo-500 to-purple-500 text-white rounded-xl shadow-lg">
+                      <Shield className="w-5 h-5 md:w-6 md:h-6" />
+                    </div>
+                    <h3 className="text-xl md:text-2xl font-black text-gray-900">
+                      Contrato de Prestação de Serviços
+                    </h3>
+                  </div>
 
-    <CardFooter className="bg-gray-50 p-4 md:p-6">
-      <div className="w-full flex flex-col sm:flex-row justify-between gap-3">
-        <Button
-          variant="outline"
-          onClick={prevStep}
-          disabled={paymentProcessing}
-          size="lg"
-          className="w-full sm:w-auto h-14 px-6 font-bold"
-        >
-          <ArrowLeft className="mr-2 h-5 w-5" />
-          Voltar
-        </Button>
-        <Button
-          onClick={handlePaymentSubmit}
-          disabled={!isStep3Valid || paymentProcessing}
-          size="lg"
-          className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-2xl h-14 px-8 font-black text-lg disabled:opacity-50"
-        >
-          {paymentProcessing ? (
-            <>
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              Processando...
-            </>
-          ) : (
-            <>
-              <Shield className="mr-2 h-5 w-5" />
-              CONFIRMAR PAGAMENTO R$ {getPaymentBreakdown.entrada.toFixed(2)}
-            </>
+                  <div className="prose prose-sm md:prose-base max-w-none text-gray-700 max-h-[400px] md:max-h-[500px] overflow-y-auto pr-2 md:pr-4 scrollbar-thin scrollbar-thumb-indigo-500 scrollbar-track-gray-200">
+                    <h4 className="font-black text-gray-900">CONTRATO DE PRESTAÇÃO DE SERVIÇOS DIGITAIS</h4>
+                    <p className="text-sm md:text-base">
+                      Entre <strong className="text-indigo-600">Impulsioneweb</strong> (CONTRATADA) e{" "}
+                      <strong className="text-indigo-600">{formData.name || "[Nome do Cliente]"}</strong> (CONTRATANTE)
+                    </p>
+
+                    <h4 className="font-black mt-4 text-gray-900">1. OBJETO DO CONTRATO</h4>
+                    <p className="text-sm md:text-base">
+                      {formData.serviceType === "project" ? (
+                        <>
+                          Desenvolvimento de{" "}
+                          {formData.projectType === "website"
+                            ? "website/portal web"
+                            : "sistema/aplicativo"}{" "}
+                          conforme especificações, com valor de{" "}
+                          <strong className="text-green-600">R$ {getPaymentBreakdown.total.toFixed(2)}</strong>
+                          {getPaymentBreakdown.discount > 0 && (
+                            <> (desconto de R$ {getPaymentBreakdown.discount.toFixed(2)} à vista aplicado)</>
+                          )}.
+                        </>
+                      ) : (
+                        <>
+                          Manutenção mensal no Plano{" "}
+                          <strong className="text-indigo-600">
+                            {MAINTENANCE_PLANS.find((p) => p.id === formData.maintenancePlan)?.name}
+                          </strong>
+                          , por{" "}
+                          <strong className="text-green-600">
+                            R$ {MAINTENANCE_PLANS.find((p) => p.id === formData.maintenancePlan)?.price}/mês
+                          </strong>
+                          .
+                        </>
+                      )}
+                    </p>
+
+                    <h4 className="font-black mt-4 text-gray-900">2. FORMA DE PAGAMENTO</h4>
+                    <p className="text-sm md:text-base">
+                      {formData.serviceType === "project" ? (
+                        <>
+                          Pagamento:
+                          <ul className="mt-2 space-y-1">
+                            {formData.paymentStructure === "full" ? (
+                              <li>
+                                <strong>À Vista ({PAYMENT_DISCOUNT}% OFF):</strong> R$ {getPaymentBreakdown.entrada.toFixed(2)}
+                              </li>
+                            ) : (
+                              <>
+                                <li>
+                                  <strong>1ª Parcela:</strong> R$ {getPaymentBreakdown.entrada.toFixed(2)}{" "}
+                                  ({formData.paymentStructure === "40-30-30" ? "40%" : "50%"})
+                                </li>
+                                {formData.paymentStructure === "40-30-30" ? (
+                                  <>
+                                    <li>
+                                      <strong>2ª Parcela:</strong> R$ {getPaymentBreakdown.segunda.toFixed(2)} (30%)
+                                    </li>
+                                    <li>
+                                      <strong>3ª Parcela:</strong> R$ {getPaymentBreakdown.terceira.toFixed(2)} (30%)
+                                    </li>
+                                  </>
+                                ) : (
+                                  <li>
+                                    <strong>2ª Parcela:</strong> R$ {getPaymentBreakdown.segunda.toFixed(2)} (50%)
+                                  </li>
+                                )}
+                              </>
+                            )}
+                          </ul>
+                        </>
+                      ) : (
+                        <>
+                          Mensalidade de{" "}
+                          <strong className="text-green-600">
+                            R$ {MAINTENANCE_PLANS.find((p) => p.id === formData.maintenancePlan)?.price}
+                          </strong>{" "}
+                          vencendo todo dia 10. <strong>Atraso de 15 dias = site suspenso automaticamente.</strong>
+                        </>
+                      )}
+                    </p>
+
+                    <h4 className="font-black mt-4 text-gray-900">3. PRAZO</h4>
+                    <p className="text-sm md:text-base">
+                      {formData.serviceType === "project"
+                        ? `Prazo estimado: ${TIMELINE_OPTIONS.find(t => t.value === formData.timeline)?.label || "a combinar"}.`
+                        : "Serviço contínuo até cancelamento."}
+                    </p>
+
+                    <h4 className="font-black mt-4 text-gray-900">4. OBRIGAÇÕES</h4>
+                    <ul className="space-y-1 text-sm md:text-base">
+                      <li>• CONTRATADA entrega conforme acordado</li>
+                      <li>• CONTRATANTE fornece informações necessárias</li>
+                      <li>• Atrasos no pagamento suspendem serviços</li>
+                      {formData.serviceType === "project" && (
+                        <li>• Incluído: 3 revisões + 30 dias suporte grátis</li>
+                      )}
+                    </ul>
+
+                    <h4 className="font-black mt-4 text-gray-900 flex items-center gap-2">
+                      <AlertTriangle className="w-5 h-5 text-red-600" />
+                      5. SUSPENSÃO POR FALTA DE PAGAMENTO
+                    </h4>
+                    <div className="bg-red-50 border-2 border-red-300 rounded-lg p-4 my-3">
+                      <p className="text-sm md:text-base font-bold text-red-900">
+                        ATENÇÃO - CLÁUSULA IMPORTANTE:
+                      </p>
+                      <ul className="space-y-1 text-sm md:text-base text-red-800 mt-2">
+                        <li>• <strong>Projetos:</strong> Não pagou parcela = desenvolvimento SUSPENSO até quitação.</li>
+                        <li>• <strong>Manutenção:</strong> 15 dias de atraso = site/sistema SAI DO AR automaticamente.</li>
+                        <li>• Multa: 2% ao mês + juros 1% a.m.</li>
+                        <li>• Após 60 dias: possível exclusão permanente de arquivos.</li>
+                      </ul>
+                    </div>
+
+                    <h4 className="font-black mt-4 text-gray-900">6. CANCELAMENTO</h4>
+                    <p className="text-sm md:text-base">
+                      {formData.serviceType === "project"
+                        ? "Cancelamento: valores pagos NÃO são reembolsados."
+                        : "Deve avisar com 30 dias de antecedência."}
+                    </p>
+
+                    <h4 className="font-black mt-4 text-gray-900">7. GARANTIAS</h4>
+                    <ul className="space-y-1 text-sm md:text-base">
+                      <li>• 30 dias para correção de bugs</li>
+                      <li>• SSL incluso</li>
+                      <li>• Backup conforme plano</li>
+                    </ul>
+
+                    <h4 className="font-black mt-4 text-gray-900">8. PROPRIEDADE</h4>
+                    <p className="text-sm md:text-base">
+                      Após quitação TOTAL, código-fonte é seu. Frameworks mantêm licenças originais.
+                    </p>
+
+                    <div className="mt-6 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg">
+                      <p className="text-sm font-bold text-blue-900">
+                        ✓ Ao aceitar, você confirma que leu e concorda com TODOS os termos acima.
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="mt-6 p-4 md:p-6 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl border-2 border-indigo-200 shadow-lg"
+                >
+                  <div className="flex items-start gap-3">
+                    <Checkbox
+                      id="terms"
+                      checked={formData.termsAccepted}
+                      onCheckedChange={handleCheckboxChange}
+                      className="mt-1 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600 w-5 h-5"
+                    />
+                    <label htmlFor="terms" className="cursor-pointer flex-1">
+                      <div className="font-bold text-base md:text-lg text-gray-900">
+                        ✓ Li e aceito todos os termos
+                      </div>
+                      <div className="text-sm text-gray-600 mt-1">
+                        Estou ciente das condições de pagamento, prazos e suspensão por inadimplência.
+                      </div>
+                    </label>
+                  </div>
+                </motion.div>
+              </CardContent>
+
+              <CardFooter className="bg-gray-50 p-4 md:p-6 flex-col sm:flex-row gap-3">
+                <div className="w-full flex flex-col sm:flex-row justify-between items-center gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={prevStep}
+                    size="lg"
+                    className="w-full sm:w-auto border-2 h-12 md:h-14 px-6 font-bold order-2 sm:order-1"
+                  >
+                    <ArrowLeft className="mr-2 h-5 w-5" />
+                    Voltar
+                  </Button>
+                  <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto order-1 sm:order-2">
+                    <span className="text-sm text-gray-500 font-medium">Etapa 2 de 3</span>
+                    <Button
+                      onClick={handleSignContract}
+                      disabled={!formData.termsAccepted}
+                      size="lg"
+                      className="w-full sm:w-auto bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 text-white shadow-xl shadow-indigo-500/50 h-12 md:h-14 px-8 font-black text-base disabled:opacity-50"
+                    >
+                      ASSINAR E CONTINUAR
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                  </div>
+                </div>
+              </CardFooter>
+            </Card>
           )}
-        </Button>
-      </div>
-    </CardFooter>
-  </Card>
-)}
-         </motion.div>
+
+          {/* ==================== STEP 3: PAGAMENTO ==================== */}
+          {step === 3 && (
+            <Card className="border-0 shadow-2xl overflow-hidden bg-white/80 backdrop-blur-sm">
+              <CardHeader className="bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 text-white p-6 md:p-8">
+                <div className="flex items-center justify-between gap-4 flex-wrap">
+                  <div className="flex items-center gap-4">
+                    <motion.div
+                      initial={{ rotate: -180, scale: 0 }}
+                      animate={{ rotate: 0, scale: 1 }}
+                      transition={{ type: "spring", stiffness: 200 }}
+                      className="p-3 bg-white/20 rounded-2xl backdrop-blur"
+                    >
+                      <CreditCard className="w-6 h-6 md:w-8 md:h-8" />
+                    </motion.div>
+                    <div>
+                      <CardTitle className="text-2xl md:text-4xl font-black">
+                        🎉 Último Passo!
+                      </CardTitle>
+                      <CardDescription className="text-emerald-100 text-sm md:text-base mt-1">
+                        Pagamento 100% seguro e criptografado
+                      </CardDescription>
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+
+              <CardContent className="p-4 md:p-8 space-y-6">
+                {/* GARANTIA EM DESTAQUE */}
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-4 md:p-6 border-2 border-blue-300 shadow-lg"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="p-2.5 bg-gradient-to-br from-blue-500 to-indigo-500 text-white rounded-xl shadow-lg">
+                      <Shield className="w-5 h-5 md:w-6 md:h-6" />
+                    </div>
+                    <div>
+                      <h4 className="font-black text-lg mb-2 text-gray-900">
+                        🛡️ Garantia de 30 Dias ou Seu Dinheiro de Volta
+                      </h4>
+                      <p className="text-sm text-gray-700">
+                        Se em 30 dias você não estiver 100% satisfeito, devolvemos TODO o valor pago. Sem perguntas, sem burocracia.
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Payment Summary */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-4 md:p-6 border-2 border-green-300 shadow-lg"
+                >
+                  <h3 className="text-lg md:text-xl font-black mb-4 flex items-center gap-2 text-gray-900">
+                    <DollarSign className="w-5 h-5 md:w-6 md:h-6 text-green-600" />
+                    💰 Valor a Pagar AGORA
+                  </h3>
+
+                  {formData.serviceType === "project" ? (
+                    <div className="space-y-4">
+                      <Card className="border-2 border-green-500 bg-white shadow-xl">
+                        <CardHeader className="pb-3">
+                          <Badge className="w-fit bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-lg">
+                            <Zap className="w-3 h-3 mr-1" />
+                            {formData.paymentStructure === "full" ? "Pagamento Único" : "1ª Parcela"}
+                          </Badge>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-4xl md:text-5xl font-black bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                            R$ {getPaymentBreakdown.entrada.toFixed(2)}
+                          </p>
+                          {getPaymentBreakdown.discount > 0 && (
+                            <div className="mt-2">
+                              <span className="text-sm line-through text-gray-400">
+                                R$ {getPaymentBreakdown.originalTotal.toFixed(2)}
+                              </span>
+                              <Badge className="ml-2 bg-green-500 text-white font-bold animate-pulse">
+                                Economize R$ {getPaymentBreakdown.discount.toFixed(2)} ({PAYMENT_DISCOUNT}% OFF)
+                              </Badge>
+                            </div>
+                          )}
+                          <p className="text-sm text-gray-600 mt-2 font-semibold">
+                            {formData.paymentStructure === "full"
+                              ? "Pagamento único com desconto! Projeto inicia em até 24h."
+                              : `Demais parcelas cobradas no andamento do projeto`}
+                          </p>
+                        </CardContent>
+                      </Card>
+
+                      <Alert className="border-blue-300 bg-blue-50">
+                        <Info className="h-5 w-5 text-blue-600" />
+                        <AlertDescription className="text-blue-800 font-medium">
+                          🚀 Projeto inicia imediatamente após confirmação do pagamento!
+                        </AlertDescription>
+                      </Alert>
+                    </div>
+                  ) : (
+                    <Card className="border-2 border-green-500 bg-white shadow-xl">
+                      <CardContent className="pt-6">
+                        <div className="text-sm line-through text-gray-400">
+                          De: R$ {MAINTENANCE_PLANS.find((p) => p.id === formData.maintenancePlan)?.originalPrice}/mês
+                        </div>
+                        <p className="text-4xl md:text-5xl font-black bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                          R$ {getPaymentBreakdown.total.toFixed(2)}
+                          <span className="text-lg font-normal text-gray-500">/mês</span>
+                        </p>
+                        <Badge className="mt-2 bg-green-500 text-white font-bold">
+                          Economize R$ {(MAINTENANCE_PLANS.find((p) => p.id === formData.maintenancePlan)?.originalPrice || 0) - getPaymentBreakdown.total}/mês
+                        </Badge>
+                      </CardContent>
+                    </Card>
+                  )}
+                </motion.div>
+
+                {/* Payment Methods */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="space-y-4"
+                >
+                  <h3 className="text-lg md:text-xl font-black text-gray-900">Como Quer Pagar?</h3>
+                  <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
+                    <div className="grid grid-cols-1 gap-3 md:gap-4">
+                      {[
+                        {
+                          value: "pix",
+                          label: "PIX",
+                          description: "Aprovação instantânea - Mais Rápido! ⚡",
+                          icon: <Zap className="w-5 h-5" />,
+                          recommended: true,
+                          gradient: "from-green-500 to-emerald-500"
+                        },
+                        {
+                          value: "credit-card",
+                          label: "Cartão de Crédito",
+                          description: formData.serviceType === "project" ? "Parcele em até 3x sem juros" : "Débito automático mensal",
+                          icon: <CreditCard className="w-5 h-5" />,
+                          gradient: "from-blue-500 to-cyan-500"
+                        },
+                        {
+                          value: "boleto",
+                          label: "Boleto",
+                          description: "Vence em 3 dias úteis",
+                          icon: <FileText className="w-5 h-5" />,
+                          gradient: "from-orange-500 to-red-500"
+                        },
+                      ].map((method) => (
+                        <div key={method.value} className="relative">
+                          <RadioGroupItem
+                            value={method.value}
+                            id={method.value}
+                            className="peer sr-only"
+                          />
+                          <Label
+                            htmlFor={method.value}
+                            className={cn(
+                              "flex items-center gap-4 rounded-2xl border-2 p-4 md:p-5 cursor-pointer transition-all bg-white",
+                              "hover:border-green-400 hover:shadow-xl",
+                              "peer-data-[state=checked]:border-green-600",
+                              "peer-data-[state=checked]:bg-green-50",
+                              "peer-data-[state=checked]:shadow-2xl peer-data-[state=checked]:scale-[1.02]"
+                            )}
+                          >
+                            <div className={cn(
+                              "p-3 rounded-xl transition-all",
+                              paymentMethod === method.value
+                                ? `bg-gradient-to-br ${method.gradient} text-white shadow-lg`
+                                : "bg-gray-100 text-gray-600"
+                            )}>
+                              {method.icon}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-lg text-gray-900">{method.label}</span>
+                                {method.recommended && (
+                                  <Badge className="bg-green-500 text-white text-xs animate-pulse">
+                                    Recomendado
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-600 mt-1 font-medium">{method.description}</p>
+                            </div>
+                            {paymentMethod === method.value && (
+                              <CheckCircle className="w-6 h-6 text-green-600" />
+                            )}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </RadioGroup>
+                </motion.div>
+
+                {/* Payment Details */}
+                <AnimatePresence>
+                  {paymentMethod && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      className="bg-white rounded-2xl p-4 md:p-6 border-2 border-gray-200 shadow-lg"
+                    >
+                      {paymentMethod === "pix" && (
+                        <PixQRCode
+                          paymentId={formData.paymentId}
+                          amount={getPaymentBreakdown.entrada}
+                        />
+                      )}
+
+                      {paymentMethod === "credit-card" && (
+                        <div className="space-y-4">
+                          <h4 className="font-bold text-lg flex items-center gap-2">
+                            <CreditCard className="w-5 h-5 text-blue-600" />
+                            Dados do Cartão
+                          </h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="md:col-span-2">
+                              <Label>Número do Cartão</Label>
+                              <Input placeholder="1234 5678 9012 3456" className="h-12 text-base mt-2" />
+                            </div>
+                            <div className="md:col-span-2">
+                              <Label>Nome no Cartão</Label>
+                              <Input placeholder="COMO ESTÁ NO CARTÃO" className="h-12 text-base mt-2" />
+                            </div>
+                            <div>
+                              <Label>Validade</Label>
+                              <Input placeholder="MM/AA" className="h-12 text-base mt-2" />
+                            </div>
+                            <div>
+                              <Label>CVV</Label>
+                              <Input placeholder="123" maxLength={4} className="h-12 text-base mt-2" />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {paymentMethod === "boleto" && (
+                        <BoletoPayment
+                          paymentId={formData.paymentId}
+                          amount={getPaymentBreakdown.entrada}
+                        />
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </CardContent>
+
+              <CardFooter className="bg-gray-50 p-4 md:p-6">
+                <div className="w-full flex flex-col sm:flex-row justify-between gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={prevStep}
+                    disabled={paymentProcessing}
+                    size="lg"
+                    className="w-full sm:w-auto h-14 px-6 font-bold"
+                  >
+                    <ArrowLeft className="mr-2 h-5 w-5" />
+                    Voltar
+                  </Button>
+                  <Button
+                    onClick={handlePaymentSubmit}
+                    disabled={!isStep3Valid || paymentProcessing}
+                    size="lg"
+                    className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-2xl h-14 px-8 font-black text-lg disabled:opacity-50"
+                  >
+                    {paymentProcessing ? (
+                      <>
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        Processando...
+                      </>
+                    ) : (
+                      <>
+                        <Shield className="mr-2 h-5 w-5" />
+                        CONFIRMAR PAGAMENTO R$ {getPaymentBreakdown.entrada.toFixed(2)}
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardFooter>
+            </Card>
+          )}
+        </motion.div>
 
         {/* Trust Footer */}
         <motion.div
@@ -2051,34 +2012,34 @@ export default function ContractForm() {
           transition={{ delay: 0.5 }}
           className="max-w-4xl mx-auto mt-12"
         >
-          <div className="bg-white/60 backdrop-blur rounded-2xl p-6 border shadow-lg">
+          <div className="bg-white/80 backdrop-blur rounded-2xl p-6 border shadow-lg">
             <div className="flex flex-wrap items-center justify-center gap-6 text-center">
               <div className="flex items-center gap-2">
                 <Shield className="w-5 h-5 text-green-600" />
                 <div className="text-left">
-                  <p className="text-xs font-bold">Pagamento 100% Seguro</p>
+                  <p className="text-xs font-bold text-gray-900">Pagamento 100% Seguro</p>
                   <p className="text-xs text-gray-600">Criptografia SSL 256-bit</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Lock className="w-5 h-5 text-blue-600" />
                 <div className="text-left">
-                  <p className="text-xs font-bold">LGPD Compliant</p>
+                  <p className="text-xs font-bold text-gray-900">LGPD Compliant</p>
                   <p className="text-xs text-gray-600">Seus dados protegidos</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5 text-purple-600" />
                 <div className="text-left">
-                  <p className="text-xs font-bold">127+ Clientes</p>
+                  <p className="text-xs font-bold text-gray-900">+127 Clientes</p>
                   <p className="text-xs text-gray-600">4.9★ de avaliação</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Award className="w-5 h-5 text-orange-600" />
                 <div className="text-left">
-                  <p className="text-xs font-bold">Garantia 30 Dias</p>
-                  <p className="text-xs text-gray-600">100% do dinheiro de volta</p>
+                  <p className="text-xs font-bold text-gray-900">Garantia 30 Dias</p>
+                  <p className="text-xs text-gray-600">Dinheiro de volta</p>
                 </div>
               </div>
             </div>
@@ -2086,7 +2047,7 @@ export default function ContractForm() {
         </motion.div>
       </div>
 
-      {/* CSS */}
+      {/* CSS Animations */}
       <style jsx>{`
         @keyframes blob {
           0%, 100% { transform: translate(0, 0) scale(1); }
@@ -2096,20 +2057,6 @@ export default function ContractForm() {
         .animate-blob { animation: blob 7s infinite; }
         .animation-delay-2000 { animation-delay: 2s; }
         .animation-delay-4000 { animation-delay: 4s; }
-        @keyframes shimmer {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-        .animate-shimmer { animation: shimmer 2s infinite; }
-        .scrollbar-thin::-webkit-scrollbar { width: 6px; }
-        .scrollbar-thumb-indigo-500::-webkit-scrollbar-thumb {
-          background-color: #6366f1;
-          border-radius: 3px;
-        }
-        .scrollbar-track-gray-200::-webkit-scrollbar-track {
-          background-color: #e5e7eb;
-          border-radius: 3px;
-        }
       `}</style>
     </div>
   )
