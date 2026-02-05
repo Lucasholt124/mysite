@@ -1,36 +1,41 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚀 Impulsione Web - Institutional & Portfolio
 
-## Getting Started
+Este é o repositório oficial da **Impulsione Web**, uma agência focada em transformar negócios através de experiências digitais de alta performance. O site foi construído para servir como vitrine tecnológica, demonstrando domínio em animações, velocidade de carregamento e design responsivo.
 
-First, run the development server:
+## 🌐 Live Demo
+Acesse o site em produção: [mysite-eog7.vercel.app](https://mysite-eog7.vercel.app)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🛠️ Stack Tecnológica
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Core:** [Next.js](https://nextjs.org/) (App Router)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+- **Language:** [TypeScript](https://www.typescript.org/)
+- **Animations:** Framer Motion / CSS Transitions (para UX fluida)
+- **Deployment:** [Vercel](https://vercel.com/) (CI/CD)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 💡 Diferenciais Técnicos
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Performance Nota 100:** Otimização agressiva de imagens e fontes, garantindo Core Web Vitals excelentes.
+- **SEO Ready:** Estrutura de metadados dinâmica e semântica HTML5 focada em indexação.
+- **UI/UX:** Componentes modulares desenvolvidos para garantir a melhor experiência em qualquer dispositivo.
+- **Arquitetura Limpa:** Código organizado seguindo as melhores práticas do ecossistema React.
 
-## Learn More
+## 📁 Estrutura do Código
 
-To learn more about Next.js, take a look at the following resources:
+- `/src/components`: Componentes reutilizáveis (Botões, Cards, Navbar).
+- `/src/app`: Estrutura de rotas e páginas institucionais.
+- `/public`: Assets otimizados e ícones.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🚀 Como Executar
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Clone o repositório:
+   ```bash
+   git clone [https://github.com/Lucasholt124/meusite.git](https://github.com/Lucasholt124/meusite.git)
 
-## Deploy on Vercel
+2.   Instale as dependências: npm run dev
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+3.   Inicie o ambiente de desenvolvimento: npm run dev
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   Impulsione Web - Transformando ideias em software de alto impacto.
+
+Desenvolvido por Lucas Aragão
