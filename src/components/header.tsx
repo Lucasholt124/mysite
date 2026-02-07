@@ -1,22 +1,20 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { Menu, X, ArrowRight, MessageCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { motion, AnimatePresence, useScroll, useTransform, useMotionValueEvent } from "framer-motion"
 
 const WHATSAPP_LINK = "https://wa.me/5579999383543?text=Ol%C3%A1!%20Tenho%20interesse%20em%20iniciar%20um%20projeto.%20Podemos%20conversar%3F"
-// ☝️ SUBSTITUA "5500000000000" pelo seu número real com DDI+DDD (ex: 5511999999999)
-
 const PORTFOLIO_LINK = "https://new-portfolio-delta-blond.vercel.app/"
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false)
-  const [, setIsScrolled] = useState<boolean>(false)
   const [activeLink, setActiveLink] = useState<string>("")
   const [hoveredLink, setHoveredLink] = useState<string | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
+  const toggleRef = useRef<HTMLButtonElement>(null)
 
   const { scrollY } = useScroll()
   const headerBg = useTransform(
@@ -35,9 +33,7 @@ export default function Header() {
     ["rgba(147,51,234,0)", "rgba(147,51,234,0.1)"]
   )
 
-  useMotionValueEvent(scrollY, "change", (latest) => {
-    setIsScrolled(latest > 50)
-  })
+  useMotionValueEvent(scrollY, "change", () => {})
 
   // Detectar seção ativa
   useEffect(() => {
@@ -59,13 +55,16 @@ export default function Header() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
-  // Fecha o menu ao clicar fora
+  // Fecha o menu ao clicar fora (excluindo o botão toggle)
   useEffect(() => {
     if (!isMenuOpen) return
     function handleClickOutside(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsMenuOpen(false)
-      }
+      const target = event.target as Node
+      // Não fechar se clicou no botão toggle (ele já cuida disso)
+      if (toggleRef.current && toggleRef.current.contains(target)) return
+      // Não fechar se clicou dentro do menu
+      if (menuRef.current && menuRef.current.contains(target)) return
+      setIsMenuOpen(false)
     }
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
@@ -82,6 +81,19 @@ export default function Header() {
       document.body.style.overflow = ""
     }
   }, [isMenuOpen])
+
+  // Fecha menu ao redimensionar para desktop
+  useEffect(() => {
+    function handleResize() {
+      if (window.innerWidth >= 768) {
+        setIsMenuOpen(false)
+      }
+    }
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize)
+  }, [])
+
+  const closeMenu = useCallback(() => setIsMenuOpen(false), [])
 
   const navLinks = [
     { href: "/#servicos", label: "Serviços", external: false },
@@ -126,25 +138,23 @@ export default function Header() {
   }
 
   const mobileMenuVariants = {
-    initial: { opacity: 0, height: 0, y: -10 },
+    initial: { opacity: 0, height: 0 },
     animate: {
       opacity: 1,
       height: "auto",
-      y: 0,
       transition: {
-        duration: 0.4,
-        ease: [0.22, 1, 0.36, 1],
+        height: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
+        opacity: { duration: 0.3, delay: 0.05 },
         staggerChildren: 0.06,
-        delayChildren: 0.1,
+        delayChildren: 0.15,
       },
     },
     exit: {
       opacity: 0,
       height: 0,
-      y: -10,
       transition: {
-        duration: 0.3,
-        ease: [0.22, 1, 0.36, 1],
+        height: { duration: 0.3, ease: [0.22, 1, 0.36, 1], delay: 0.1 },
+        opacity: { duration: 0.2 },
       },
     },
   }
@@ -159,11 +169,10 @@ export default function Header() {
     exit: {
       opacity: 0,
       x: -20,
-      transition: { duration: 0.2 },
+      transition: { duration: 0.15 },
     },
   }
 
-  // Componente de link que lida com interno/externo
   const NavLink = ({
     href,
     external,
@@ -229,7 +238,6 @@ export default function Header() {
           {/* Logo */}
           <motion.div variants={logoVariants} initial="initial" animate="animate">
             <Link href="/" className="flex items-center group relative">
-              {/* Glow atrás do logo */}
               <motion.div
                 className="absolute -inset-3 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                 style={{
@@ -238,7 +246,6 @@ export default function Header() {
                 }}
               />
 
-              {/* Ícone animado */}
               <motion.div
                 className="relative mr-2.5 flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-purple-600 via-purple-500 to-pink-500 shadow-lg shadow-purple-500/25"
                 whileHover={{
@@ -262,7 +269,6 @@ export default function Header() {
                   I
                 </motion.span>
 
-                {/* Partículas ao redor do ícone */}
                 <motion.div
                   className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-pink-400"
                   animate={{
@@ -270,11 +276,7 @@ export default function Header() {
                     opacity: [0, 1, 0],
                     y: [0, -6, -12],
                   }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    delay: 0.5,
-                  }}
+                  transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
                 />
                 <motion.div
                   className="absolute -bottom-0.5 -left-0.5 h-1.5 w-1.5 rounded-full bg-purple-300"
@@ -283,11 +285,7 @@ export default function Header() {
                     opacity: [0, 1, 0],
                     y: [0, 4, 8],
                   }}
-                  transition={{
-                    duration: 2.5,
-                    repeat: Infinity,
-                    delay: 1,
-                  }}
+                  transition={{ duration: 2.5, repeat: Infinity, delay: 1 }}
                 />
               </motion.div>
 
@@ -336,7 +334,6 @@ export default function Header() {
                       : "text-gray-600 hover:text-purple-600"
                   }`}
                 >
-                  {/* Background animado no hover */}
                   <AnimatePresence>
                     {(hoveredLink === link.href || activeLink === link.href) && (
                       <motion.span
@@ -345,36 +342,20 @@ export default function Header() {
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
-                        transition={{
-                          type: "spring",
-                          stiffness: 500,
-                          damping: 30,
-                        }}
+                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
                       />
                     )}
                   </AnimatePresence>
 
                   <span className="relative z-10">{link.label}</span>
 
-                  {/* Badge "externo" para portfólio */}
                   {link.external && (
                     <motion.span
                       className="relative z-10 ml-0.5"
                       animate={{ rotate: [0, 10, 0] }}
                       transition={{ duration: 2, repeat: Infinity }}
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="12"
-                        height="12"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="opacity-50"
-                      >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-50">
                         <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
                         <polyline points="15 3 21 3 21 9" />
                         <line x1="10" y1="14" x2="21" y2="3" />
@@ -382,23 +363,17 @@ export default function Header() {
                     </motion.span>
                   )}
 
-                  {/* Indicador de link ativo */}
                   {activeLink === link.href && (
                     <motion.span
                       className="absolute bottom-0 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"
                       layoutId="activeIndicator"
-                      transition={{
-                        type: "spring",
-                        stiffness: 400,
-                        damping: 25,
-                      }}
+                      transition={{ type: "spring", stiffness: 400, damping: 25 }}
                     />
                   )}
                 </NavLink>
               </motion.div>
             ))}
 
-            {/* Separador */}
             <motion.div
               className="mx-2 h-6 w-px bg-gray-200"
               initial={{ opacity: 0, scaleY: 0 }}
@@ -406,66 +381,38 @@ export default function Header() {
               transition={{ delay: 0.5, duration: 0.3 }}
             />
 
-            {/* CTA Button → WhatsApp */}
             <motion.div variants={ctaVariants} initial="initial" animate="animate">
-              <a
-                href={WHATSAPP_LINK}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.97 }}
                   className="relative group"
                 >
-                  {/* Glow pulsante atrás do botão */}
                   <motion.div
                     className="absolute -inset-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-md"
-                    style={{
-                      background:
-                        "linear-gradient(135deg, #22c55e, #16a34a, #22c55e)",
-                    }}
-                    animate={{
-                      opacity: [0.3, 0.6, 0.3],
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                    }}
+                    style={{ background: "linear-gradient(135deg, #22c55e, #16a34a, #22c55e)" }}
+                    animate={{ opacity: [0.3, 0.6, 0.3] }}
+                    transition={{ duration: 2, repeat: Infinity }}
                   />
-
                   <Button
                     size="sm"
                     className="relative bg-gradient-to-r from-green-500 via-green-500 to-emerald-500 hover:from-green-600 hover:via-green-600 hover:to-emerald-600 text-white rounded-full shadow-lg shadow-green-500/25 font-semibold px-5 py-2.5 text-sm transition-all duration-300 border-0 overflow-hidden"
                   >
-                    {/* Shimmer effect */}
                     <motion.div
                       className="absolute inset-0 opacity-0 group-hover:opacity-100"
                       style={{
-                        background:
-                          "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.3) 45%, rgba(255,255,255,0.3) 55%, transparent 60%)",
+                        background: "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.3) 45%, rgba(255,255,255,0.3) 55%, transparent 60%)",
                         backgroundSize: "200% 100%",
                       }}
-                      animate={{
-                        backgroundPosition: ["-100% 0%", "200% 0%"],
-                      }}
-                      transition={{
-                        duration: 1.5,
-                        repeat: Infinity,
-                        repeatDelay: 1,
-                      }}
+                      animate={{ backgroundPosition: ["-100% 0%", "200% 0%"] }}
+                      transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }}
                     />
-
                     <MessageCircle className="h-3.5 w-3.5 mr-1.5" />
                     <span>Iniciar Projeto</span>
                     <motion.div
                       className="ml-1.5 inline-flex"
                       animate={{ x: [0, 3, 0] }}
-                      transition={{
-                        duration: 1.5,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                      }}
+                      transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
                     >
                       <ArrowRight className="h-3.5 w-3.5" />
                     </motion.div>
@@ -475,17 +422,21 @@ export default function Header() {
             </motion.div>
           </nav>
 
-          {/* Mobile Menu Toggle */}
+          {/* Mobile Menu Toggle — com ref separado */}
           <motion.button
-            className="flex items-center justify-center h-10 w-10 rounded-full md:hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 bg-gray-50 hover:bg-purple-50 transition-colors"
-            onClick={() => setIsMenuOpen((open) => !open)}
+            ref={toggleRef}
+            className="relative flex items-center justify-center h-10 w-10 rounded-full md:hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 bg-gray-50 hover:bg-purple-50 transition-colors z-[60]"
+            onClick={(e) => {
+              e.stopPropagation()
+              setIsMenuOpen((open) => !open)
+            }}
             aria-label={isMenuOpen ? "Fechar menu" : "Abrir menu"}
             aria-expanded={isMenuOpen}
             aria-controls="mobile-menu"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="wait" initial={false}>
               {isMenuOpen ? (
                 <motion.div
                   key="close"
@@ -512,25 +463,26 @@ export default function Header() {
         </div>
       </motion.header>
 
-      {/* Mobile Menu - Full overlay */}
+      {/* Mobile Menu */}
       <AnimatePresence>
         {isMenuOpen && (
           <>
-            {/* Backdrop */}
+            {/* Backdrop — clica para fechar, mas z-index abaixo do botão toggle */}
             <motion.div
               className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm md:hidden"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              onClick={() => setIsMenuOpen(false)}
+              onClick={closeMenu}
+              aria-hidden="true"
             />
 
             {/* Menu Panel */}
             <motion.div
               ref={menuRef}
               id="mobile-menu"
-              className="fixed top-[66px] left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-b border-purple-100 shadow-2xl shadow-purple-500/10 md:hidden overflow-hidden"
+              className="fixed top-16 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-b border-purple-100 shadow-2xl shadow-purple-500/10 md:hidden overflow-hidden"
               variants={mobileMenuVariants}
               initial="initial"
               animate="animate"
@@ -553,9 +505,8 @@ export default function Header() {
                           ? "bg-purple-50 text-purple-700 border border-purple-100"
                           : "text-gray-700 hover:bg-gray-50 hover:text-purple-600"
                       }`}
-                      onClick={() => setIsMenuOpen(false)}
+                      onClick={closeMenu}
                     >
-                      {/* Número decorativo */}
                       <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-purple-100 to-pink-50 text-xs font-bold text-purple-500 group-hover:from-purple-200 group-hover:to-pink-100 transition-colors shrink-0">
                         {String(i + 1).padStart(2, "0")}
                       </span>
@@ -563,18 +514,7 @@ export default function Header() {
                       <span className="flex items-center gap-1.5">
                         {link.label}
                         {link.external && (
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="12"
-                            height="12"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="opacity-40"
-                          >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-40">
                             <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
                             <polyline points="15 3 21 3 21 9" />
                             <line x1="10" y1="14" x2="21" y2="3" />
@@ -595,21 +535,16 @@ export default function Header() {
                   </motion.div>
                 ))}
 
-                {/* Separador */}
-                <motion.div
-                  variants={mobileItemVariants}
-                  className="my-2 mx-4"
-                >
+                <motion.div variants={mobileItemVariants} className="my-2 mx-4">
                   <div className="h-px bg-gradient-to-r from-transparent via-purple-200 to-transparent" />
                 </motion.div>
 
-                {/* CTA Mobile → WhatsApp */}
                 <motion.div variants={mobileItemVariants}>
                   <a
                     href={WHATSAPP_LINK}
                     target="_blank"
                     rel="noopener noreferrer"
-                    onClick={() => setIsMenuOpen(false)}
+                    onClick={closeMenu}
                     className="block"
                   >
                     <motion.div
@@ -618,42 +553,20 @@ export default function Header() {
                       className="relative group overflow-hidden"
                     >
                       <Button className="w-full bg-gradient-to-r from-green-500 via-green-500 to-emerald-500 hover:from-green-600 hover:via-green-600 hover:to-emerald-600 text-white rounded-2xl shadow-lg shadow-green-500/20 font-semibold py-6 text-base transition-all duration-300 border-0">
-                        {/* Shimmer mobile */}
                         <motion.div
                           className="absolute inset-0"
                           style={{
-                            background:
-                              "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.2) 45%, rgba(255,255,255,0.2) 55%, transparent 60%)",
+                            background: "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.2) 45%, rgba(255,255,255,0.2) 55%, transparent 60%)",
                             backgroundSize: "200% 100%",
                           }}
-                          animate={{
-                            backgroundPosition: ["-100% 0%", "200% 0%"],
-                          }}
-                          transition={{
-                            duration: 2,
-                            repeat: Infinity,
-                            repeatDelay: 2,
-                          }}
+                          animate={{ backgroundPosition: ["-100% 0%", "200% 0%"] }}
+                          transition={{ duration: 2, repeat: Infinity, repeatDelay: 2 }}
                         />
-
-                        {/* Ícone WhatsApp SVG */}
-                        <svg
-                          className="h-5 w-5 mr-2"
-                          viewBox="0 0 24 24"
-                          fill="currentColor"
-                        >
+                        <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
                           <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
                         </svg>
                         <span>Iniciar Meu Projeto</span>
-                        <motion.div
-                          className="ml-2 inline-flex"
-                          animate={{ x: [0, 4, 0] }}
-                          transition={{
-                            duration: 1.5,
-                            repeat: Infinity,
-                            ease: "easeInOut",
-                          }}
-                        >
+                        <motion.div className="ml-2 inline-flex" animate={{ x: [0, 4, 0] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}>
                           <ArrowRight className="h-4 w-4" />
                         </motion.div>
                       </Button>
@@ -661,16 +574,13 @@ export default function Header() {
                   </a>
                 </motion.div>
 
-                {/* Info extra mobile */}
                 <motion.div
                   variants={mobileItemVariants}
                   className="mt-3 px-4 py-3 rounded-2xl bg-gradient-to-r from-green-50/80 to-emerald-50/80 border border-green-100/50"
                 >
                   <p className="text-xs text-gray-500 text-center leading-relaxed">
                     💬 Resposta rápida via{" "}
-                    <span className="font-semibold text-green-600">
-                      WhatsApp
-                    </span>{" "}
+                    <span className="font-semibold text-green-600">WhatsApp</span>{" "}
                     — Tire suas dúvidas e receba um orçamento gratuito
                   </p>
                 </motion.div>
