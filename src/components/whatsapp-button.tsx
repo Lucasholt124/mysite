@@ -2,90 +2,291 @@
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { X, MessageCircle, ArrowRight, Clock, Sparkles } from "lucide-react"
 
 export default function WhatsAppButton() {
   const [isTooltipVisible, setIsTooltipVisible] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [hasShownAutoTooltip, setHasShownAutoTooltip] = useState(false)
+  const [isHovered, setIsHovered] = useState(false)
 
-  // Substitua este número pelo seu número de WhatsApp no formato internacional
   const phoneNumber = "5579999383543"
-  const message = "Olá! Gostaria de saber mais sobre os serviços da Impulsioneweb."
-
+  const message =
+    "Olá! Gostaria de saber mais sobre os serviços da Impulsioneweb."
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`
 
-  // Evitar problemas de hidratação
   useEffect(() => {
     setMounted(true)
   }, [])
 
+  // Mostrar tooltip automaticamente após 5 segundos
+  useEffect(() => {
+    if (!mounted || hasShownAutoTooltip) return
+
+    const timer = setTimeout(() => {
+      setIsTooltipVisible(true)
+      setHasShownAutoTooltip(true)
+
+      // Auto-esconder após 8 segundos
+      setTimeout(() => {
+        setIsTooltipVisible(false)
+      }, 8000)
+    }, 5000)
+
+    return () => clearTimeout(timer)
+  }, [mounted, hasShownAutoTooltip])
+
   if (!mounted) return null
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+      {/* Tooltip / Chat bubble */}
       <AnimatePresence>
         {isTooltipVisible && (
           <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.9 }}
-            className="absolute bottom-12 right-0 mb-2 w-56 rounded-lg bg-white p-3 shadow-lg"
+            initial={{ opacity: 0, y: 15, scale: 0.9, x: 10 }}
+            animate={{ opacity: 1, y: 0, scale: 1, x: 0 }}
+            exit={{ opacity: 0, y: 10, scale: 0.9, x: 10 }}
+            transition={{
+              type: "spring",
+              stiffness: 400,
+              damping: 25,
+            }}
+            className="relative w-72 rounded-2xl bg-white shadow-2xl shadow-black/10 border border-gray-100 overflow-hidden"
           >
-            <button
-              onClick={() => setIsTooltipVisible(false)}
-              className="absolute right-2 top-2 text-gray-500 hover:text-gray-700"
-              aria-label="Fechar dica"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M18 6L6 18M6 6L18 18"
+            {/* Barra verde no topo */}
+            <div className="bg-gradient-to-r from-green-500 to-emerald-500 px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                {/* Avatar */}
+                <div className="relative">
+                  <div className="h-9 w-9 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                    <span className="text-white font-bold text-sm">IW</span>
+                  </div>
+                  {/* Status online */}
+                  <motion.div
+                    className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-300 border-2 border-green-500"
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-white leading-none">
+                    Impulsioneweb
+                  </h4>
+                  <p className="text-[11px] text-green-100 mt-0.5 flex items-center gap-1">
+                    <span className="h-1.5 w-1.5 rounded-full bg-green-300 inline-block" />
+                    Online agora
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setIsTooltipVisible(false)}
+                className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15 text-white/80 hover:bg-white/25 hover:text-white transition-all"
+                aria-label="Fechar"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+
+            {/* Corpo da mensagem */}
+            <div className="p-4">
+              {/* Balão de chat */}
+              <div className="relative bg-green-50 rounded-2xl rounded-tl-sm px-4 py-3 mb-3">
+                {/* Triângulo do balão */}
+                <div className="absolute -left-1.5 top-3 w-3 h-3 bg-green-50 rotate-45" />
+
+                <p className="text-sm text-gray-700 leading-relaxed relative z-10">
+                  👋 Olá! Como posso ajudar você hoje?
+                </p>
+                <p className="text-sm text-gray-700 leading-relaxed mt-1.5 relative z-10">
+                  Estamos prontos para criar a{" "}
+                  <span className="font-semibold text-green-700">
+                    solução digital perfeita
+                  </span>{" "}
+                  para o seu negócio!
+                </p>
+
+                <div className="flex items-center gap-1 mt-2 relative z-10">
+                  <Clock className="h-3 w-3 text-gray-400" />
+                  <span className="text-[10px] text-gray-400">
+                    Resposta em ~30min
+                  </span>
+                </div>
+              </div>
+
+              {/* CTA */}
+              <motion.a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 px-4 py-3 text-sm font-bold text-white shadow-md shadow-green-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-green-500/30 overflow-hidden relative"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                {/* Shimmer */}
+                <motion.div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    background:
+                      "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.2) 45%, rgba(255,255,255,0.2) 55%, transparent 60%)",
+                    backgroundSize: "200% 100%",
+                  }}
+                  animate={{
+                    backgroundPosition: ["-100% 0%", "200% 0%"],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    repeatDelay: 2,
+                  }}
+                />
+
+                <MessageCircle className="h-4 w-4" />
+                <span>Iniciar Conversa</span>
+                <motion.div
+                  animate={{ x: [0, 3, 0] }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                >
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </motion.div>
+              </motion.a>
+
+              {/* Trust text */}
+              <p className="text-[10px] text-gray-400 text-center mt-2 flex items-center justify-center gap-1">
+                <svg
+                  className="h-3 w-3 text-gray-400"
+                  viewBox="0 0 24 24"
+                  fill="none"
                   stroke="currentColor"
                   strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-            <p className="text-xs text-gray-700">Fale conosco pelo WhatsApp para um atendimento rápido!</p>
+                >
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0110 0v4" />
+                </svg>
+                Conversa segura e sem compromisso
+              </p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <motion.a
-        href={whatsappUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex h-12 w-12 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg transition-all hover:bg-[#22c55e]"
-        whileHover={{ scale: 1.05, boxShadow: "0 8px 20px rgba(0, 0, 0, 0.1)" }}
-        whileTap={{ scale: 0.95 }}
-        onMouseEnter={() => setIsTooltipVisible(true)}
-        onMouseLeave={() => setTimeout(() => setIsTooltipVisible(false), 1000)}
-        initial={{ y: 100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 260, damping: 20 }}
-        aria-label="Contato via WhatsApp"
-      >
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 32 32"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6"
+      {/* Botão flutuante principal */}
+      <div className="relative">
+        {/* Ping / pulse de atenção */}
+        <motion.div
+          className="absolute inset-0 rounded-full bg-green-500"
+          animate={{
+            scale: [1, 1.8, 1.8],
+            opacity: [0.4, 0, 0],
+          }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            repeatDelay: 3,
+          }}
+        />
+
+        {/* Segundo ping com delay */}
+        <motion.div
+          className="absolute inset-0 rounded-full bg-green-500"
+          animate={{
+            scale: [1, 1.5, 1.5],
+            opacity: [0.3, 0, 0],
+          }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            repeatDelay: 3,
+            delay: 0.3,
+          }}
+        />
+
+        {/* Botão */}
+        <motion.a
+          href={whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-xl shadow-green-500/30 transition-all duration-300 hover:shadow-2xl hover:shadow-green-500/40"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          onHoverStart={() => {
+            setIsHovered(true)
+            if (!hasShownAutoTooltip) {
+              setIsTooltipVisible(true)
+              setHasShownAutoTooltip(true)
+            }
+          }}
+          onHoverEnd={() => {
+            setIsHovered(false)
+          }}
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{
+            type: "spring",
+            stiffness: 260,
+            damping: 20,
+            delay: 1,
+          }}
+          aria-label="Contato via WhatsApp"
         >
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M16 31C23.732 31 30 24.732 30 17C30 9.26801 23.732 3 16 3C8.26801 3 2 9.26801 2 17C2 19.5109 2.661 21.8674 3.81847 23.905L2 31L9.31486 29.3038C11.3014 30.3854 13.5789 31 16 31ZM16 28.8462C22.5425 28.8462 27.8462 23.5425 27.8462 17C27.8462 10.4576 22.5425 5.15385 16 5.15385C9.45755 5.15385 4.15385 10.4576 4.15385 17C4.15385 19.5261 4.9445 21.8675 6.29184 23.7902L5.23077 27.7692L9.27993 26.7569C11.1894 28.0746 13.5046 28.8462 16 28.8462Z"
-            fill="white"
-          />
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M12.7484 9.98718C12.4655 9.35359 12.1677 9.33654 11.8987 9.32156C11.6786 9.30873 11.4301 9.30989 11.1816 9.30989C10.9331 9.30989 10.5216 9.40205 10.1673 9.77564C9.81296 10.1492 8.92334 10.9815 8.92334 12.6748C8.92334 14.3681 10.1387 15.9899 10.3014 16.2384C10.4642 16.487 12.6714 20.1 16.2013 21.4849C19.1551 22.6247 19.7313 22.4338 20.3506 22.3701C20.9699 22.3063 22.3548 21.5376 22.6663 20.7689C22.9777 20.0002 22.9777 19.3666 22.8963 19.2315C22.8149 19.0964 22.5664 19.0185 22.1937 18.8627C21.8209 18.7069 20.1276 17.8746 19.7833 17.7674C19.4389 17.6602 19.1904 17.6066 18.9419 17.9802C18.6934 18.3538 18.0313 19.0964 17.8114 19.3449C17.5915 19.5935 17.3716 19.6203 16.9988 19.4645C16.6261 19.3087 15.5177 18.9547 14.1978 17.7674C13.1609 16.8398 12.4704 15.6919 12.2505 15.3183C12.0306 14.9447 12.2288 14.7413 12.4184 14.5539C12.5892 14.3851 12.7984 14.1155 12.9898 13.8956C13.1812 13.6757 13.2348 13.5199 13.342 13.2714C13.4492 13.0229 13.3956 12.803 13.3171 12.6472C13.2348 12.4914 12.5789 10.7871 12.2791 10.0414C12.0953 9.58462 11.8911 9.49744 11.6434 9.48205L12.7484 9.98718Z"
-            fill="white"
-          />
-        </svg>
-      </motion.a>
+          {/* Glow interno */}
+          <div className="absolute inset-0 rounded-full bg-gradient-to-t from-transparent to-white/10 pointer-events-none" />
+
+          {/* Ícone WhatsApp */}
+          <motion.svg
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className="h-7 w-7 relative z-10"
+            animate={isHovered ? { rotate: [0, -10, 10, 0] } : {}}
+            transition={{ duration: 0.5 }}
+          >
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+          </motion.svg>
+
+          {/* Badge de notificação */}
+          <motion.div
+            className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 border-2 border-white shadow-sm"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{
+              delay: 2,
+              type: "spring",
+              stiffness: 500,
+              damping: 15,
+            }}
+          >
+            <span className="text-[9px] font-bold text-white">1</span>
+          </motion.div>
+        </motion.a>
+
+        {/* Label flutuante (aparece no hover, desktop only) */}
+        <AnimatePresence>
+          {isHovered && (
+            <motion.div
+              initial={{ opacity: 0, x: 10, scale: 0.9 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, x: 10, scale: 0.9 }}
+              transition={{ duration: 0.2 }}
+              className="absolute right-full mr-3 top-1/2 -translate-y-1/2 hidden md:block"
+            >
+              <div className="flex items-center gap-2 rounded-xl bg-gray-900 px-4 py-2.5 shadow-xl whitespace-nowrap">
+                <Sparkles className="h-3.5 w-3.5 text-green-400" />
+                <span className="text-sm font-semibold text-white">
+                  Fale conosco!
+                </span>
+
+                {/* Seta apontando para a direita */}
+                <div className="absolute -right-1.5 top-1/2 -translate-y-1/2 h-3 w-3 bg-gray-900 rotate-45" />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   )
 }
